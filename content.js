@@ -3,6 +3,14 @@ let lastCopyTime = 0;
 let processingCopy = false;
 let extensionContextValid = true;
 
+// 标题替换配置（默认配置）
+let headingReplacementConfig = {
+    enabled: false,
+    replacements: {
+        'h1': 'h2'
+    }
+};
+
 console.log('图片内联转换插件已加载');
 
 // 检测扩展上下文是否有效
@@ -12,6 +20,73 @@ function checkExtensionContext() {
     } catch (e) {
         return false;
     }
+}
+
+// 加载标题替换配置
+function loadHeadingConfig() {
+    try {
+        const saved = localStorage.getItem('imageInliner_headingConfig');
+        if (saved) {
+            headingReplacementConfig = { ...headingReplacementConfig, ...JSON.parse(saved) };
+            console.log('📝 已加载标题替换配置:', headingReplacementConfig);
+        }
+    } catch (e) {
+        console.warn('加载标题配置失败:', e);
+    }
+}
+
+// 保存标题替换配置
+function saveHeadingConfig() {
+    try {
+        localStorage.setItem('imageInliner_headingConfig', JSON.stringify(headingReplacementConfig));
+        console.log('💾 已保存标题替换配置');
+    } catch (e) {
+        console.warn('保存标题配置失败:', e);
+    }
+}
+
+// 应用标题替换
+function applyHeadingReplacements(container) {
+    if (!headingReplacementConfig.enabled) {
+        console.log('📝 标题替换功能未启用');
+        return 0;
+    }
+    
+    let replacementCount = 0;
+    const replacements = headingReplacementConfig.replacements;
+    
+    // 查找所有标题元素
+    for (const [fromTag, toTag] of Object.entries(replacements)) {
+        if (fromTag === toTag) continue; // 跳过相同的标签
+        
+        const headings = container.querySelectorAll(fromTag);
+        headings.forEach(heading => {
+            if (toTag && toTag !== fromTag) {
+                // 创建新的标题元素
+                const newHeading = document.createElement(toTag);
+                
+                // 复制所有属性
+                Array.from(heading.attributes).forEach(attr => {
+                    newHeading.setAttribute(attr.name, attr.value);
+                });
+                
+                // 复制内容
+                newHeading.innerHTML = heading.innerHTML;
+                
+                // 替换元素
+                heading.parentNode.replaceChild(newHeading, heading);
+                replacementCount++;
+                
+                console.log(`📝 ${fromTag.toUpperCase()} -> ${toTag.toUpperCase()}: ${newHeading.textContent.substring(0, 30)}...`);
+            }
+        });
+    }
+    
+    if (replacementCount > 0) {
+        console.log(`✅ 完成标题替换，共替换 ${replacementCount} 个标题`);
+    }
+    
+    return replacementCount;
 }
 
 // 安全的消息发送函数
@@ -33,6 +108,133 @@ async function safeRuntimeMessage(message) {
     }
 }
 
+// 显示标题替换配置界面
+function showHeadingConfigUI() {
+    // 移除已存在的配置界面
+    const existingUI = document.getElementById('headingConfigUI');
+    if (existingUI) {
+        existingUI.remove();
+    }
+    
+    // 创建配置界面
+    const configUI = document.createElement('div');
+    configUI.id = 'headingConfigUI';
+    configUI.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: white; border: 2px solid #1890ff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 10000; font-family: Arial, sans-serif; max-width: 350px;">
+            <h3 style="margin: 0 0 15px 0; color: #1890ff; font-size: 16px;">🔧 标题替换设置</h3>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="checkbox" id="enableHeadingReplacement" ${headingReplacementConfig.enabled ? 'checked' : ''} style="margin-right: 8px;">
+                    <span style="font-weight: bold;">启用标题替换功能</span>
+                </label>
+            </div>
+            
+            <div id="replacementRules" style="display: ${headingReplacementConfig.enabled ? 'block' : 'none'};">
+                <div style="margin-bottom: 10px; font-weight: bold; color: #666;">替换规则：</div>
+                ${generateReplacementInputs()}
+            </div>
+            
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <button id="saveHeadingConfig" style="background: #52c41a; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; flex: 1;">保存</button>
+                <button id="resetHeadingConfig" style="background: #fa8c16; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; flex: 1;">重置</button>
+                <button id="closeHeadingConfig" style="background: #f5f5f5; color: #333; border: 1px solid #d9d9d9; padding: 8px 16px; border-radius: 4px; cursor: pointer;">关闭</button>
+            </div>
+            
+            <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                <div>💡 提示：选择要替换的标题级别</div>
+                <div>例如：将 H1, H2 都替换为 H3</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(configUI);
+    
+    // 绑定事件
+    document.getElementById('enableHeadingReplacement').addEventListener('change', function() {
+        const rulesDiv = document.getElementById('replacementRules');
+        rulesDiv.style.display = this.checked ? 'block' : 'none';
+    });
+    
+    document.getElementById('saveHeadingConfig').addEventListener('click', saveConfigFromUI);
+    document.getElementById('resetHeadingConfig').addEventListener('click', resetConfigUI);
+    document.getElementById('closeHeadingConfig').addEventListener('click', () => configUI.remove());
+    
+    // 绑定替换规则的change事件
+    document.querySelectorAll('.replacement-select').forEach(select => {
+        select.addEventListener('change', updateConfigFromUI);
+    });
+}
+
+function generateReplacementInputs() {
+    const headingLevels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+    let html = '';
+    
+    headingLevels.forEach(level => {
+        const currentValue = headingReplacementConfig.replacements[level] || level;
+        html += `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <span style="width: 40px; font-weight: bold; text-transform: uppercase;">${level}:</span>
+                <select class="replacement-select" data-from="${level}" style="flex: 1; padding: 4px; border: 1px solid #d9d9d9; border-radius: 4px;">
+                    ${headingLevels.map(h => `<option value="${h}" ${h === currentValue ? 'selected' : ''}>${h.toUpperCase()}</option>`).join('')}
+                </select>
+            </div>
+        `;
+    });
+    
+    return html;
+}
+
+function updateConfigFromUI() {
+    document.querySelectorAll('.replacement-select').forEach(select => {
+        const fromTag = select.dataset.from;
+        const toTag = select.value;
+        headingReplacementConfig.replacements[fromTag] = toTag;
+    });
+}
+
+function saveConfigFromUI() {
+    headingReplacementConfig.enabled = document.getElementById('enableHeadingReplacement').checked;
+    updateConfigFromUI();
+    saveHeadingConfig();
+    
+    // 显示保存成功提示
+    const button = document.getElementById('saveHeadingConfig');
+    const originalText = button.textContent;
+    button.textContent = '✅ 已保存';
+    button.style.background = '#52c41a';
+    setTimeout(() => {
+        button.textContent = originalText;
+        button.style.background = '#52c41a';
+    }, 1000);
+    
+    console.log('✅ 标题替换配置已保存:', headingReplacementConfig);
+}
+
+function resetConfigUI() {
+    headingReplacementConfig = {
+        enabled: false,
+        replacements: {
+            'h1': 'h3',
+            'h2': 'h3',
+            'h3': 'h3',
+            'h4': 'h4',
+            'h5': 'h5',
+            'h6': 'h6'
+        }
+    };
+    
+    document.getElementById('enableHeadingReplacement').checked = false;
+    document.getElementById('replacementRules').style.display = 'none';
+    
+    document.querySelectorAll('.replacement-select').forEach(select => {
+        const fromTag = select.dataset.from;
+        select.value = headingReplacementConfig.replacements[fromTag];
+    });
+    
+    console.log('🔄 标题替换配置已重置');
+}
+
 // 检测是否在钉钉环境
 const isDingTalkEnv = window.location.hostname.includes('dingtalk') || 
                      window.location.hostname.includes('dingding') ||
@@ -41,6 +243,70 @@ const isDingTalkEnv = window.location.hostname.includes('dingtalk') ||
 
 if (isDingTalkEnv) {
     console.log('检测到钉钉环境，启用图片内联转换插件');
+}
+
+// 加载配置
+loadHeadingConfig();
+
+// 添加快捷键监听 (Ctrl+Shift+H 打开标题配置)
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'H') {
+        e.preventDefault();
+        showHeadingConfigUI();
+        console.log('🔧 打开标题替换配置界面');
+    }
+}, false);
+
+// 在页面中添加一个小的配置按钮（可选）
+function addConfigButton() {
+    // 避免重复添加
+    if (document.getElementById('imageInlinerConfigBtn')) return;
+    
+    const configBtn = document.createElement('div');
+    configBtn.id = 'imageInlinerConfigBtn';
+    configBtn.innerHTML = '🔧';
+    configBtn.title = '图片内联插件设置 (Ctrl+Shift+H)';
+    configBtn.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        background: #1890ff;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 18px;
+        z-index: 9999;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+    `;
+    
+    configBtn.addEventListener('mouseenter', () => {
+        configBtn.style.transform = 'scale(1.1)';
+        configBtn.style.background = '#40a9ff';
+    });
+    
+    configBtn.addEventListener('mouseleave', () => {
+        configBtn.style.transform = 'scale(1)';
+        configBtn.style.background = '#1890ff';
+    });
+    
+    configBtn.addEventListener('click', () => {
+        showHeadingConfigUI();
+    });
+    
+    document.body.appendChild(configBtn);
+}
+
+// 在页面加载完成后添加配置按钮
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addConfigButton);
+} else {
+    addConfigButton();
 }
 
 // 方案1：直接拦截复制事件并完全控制
@@ -362,10 +628,17 @@ document.addEventListener('copy', async (e) => {
                     }
                 });
                 
+                // 应用标题替换（在生成HTML之前）
+                const headingReplacements = applyHeadingReplacements(tempContainer);
+                
                 fullHtml = tempContainer.innerHTML;
                 plainText = tempContainer.textContent || tempContainer.innerText || '';
                 
-                console.log('✅ 使用增强样式保持方法（包含表格标题处理）');
+                if (headingReplacements > 0) {
+                    console.log('✅ 使用增强样式保持方法（包含表格标题处理和标题替换）');
+                } else {
+                    console.log('✅ 使用增强样式保持方法（包含表格标题处理）');
+                }
             } else {
                 throw new Error('无法获取选中区域信息');
             }
@@ -376,6 +649,10 @@ document.addEventListener('copy', async (e) => {
             const container = document.createElement('div');
             const clonedFragment = originalRange.cloneContents();
             container.appendChild(clonedFragment);
+            
+            // 即使在基础方法中也应用标题替换
+            applyHeadingReplacements(container);
+            
             fullHtml = container.innerHTML;
             plainText = container.textContent || container.innerText || '';
         }
@@ -385,6 +662,10 @@ document.addEventListener('copy', async (e) => {
             const container = document.createElement('div');
             const clonedFragment = originalRange.cloneContents();
             container.appendChild(clonedFragment);
+            
+            // 应用标题替换
+            applyHeadingReplacements(container);
+            
             fullHtml = container.innerHTML;
             plainText = container.textContent || container.innerText || '';
         }
@@ -462,7 +743,7 @@ document.addEventListener('copy', async (e) => {
                                 'text/plain': new Blob([textContent], { type: 'text/plain' })
                             })
                         ]);
-                        console.log('✅ 剪贴板已更新，包含', successCount, '张内联图片，保持原始格式');
+                        console.log('✅ 剪贴板已更新，包含', successCount, '张内联图片，保持原始格式' + (headingReplacementConfig.enabled ? '，应用了标题替换' : ''));
                     } catch (clipboardError) {
                         console.warn('❌ 现代剪贴板API失败:', clipboardError);
                         // 如果现代API失败，内容已经通过e.clipboardData设置了
@@ -602,6 +883,8 @@ window.testImageInliner = function() {
     // 创建测试内容
     const testDiv = document.createElement('div');
     testDiv.innerHTML = `
+        <h1 style="color: red;">测试标题1</h1>
+        <h2 style="color: blue;">测试标题2</h2>
         <p>测试文本</p>
         <img src="https://via.placeholder.com/50x50/ff0000/ffffff?text=TEST" alt="测试图片">
     `;
@@ -613,7 +896,8 @@ window.testImageInliner = function() {
     selection.removeAllRanges();
     selection.addRange(range);
     
-    console.log('🧪 已选择测试内容，请按Ctrl+C复制');
+    console.log('🧪 测试内容已选择，当前标题替换配置:', headingReplacementConfig);
+    console.log('🧪 请按Ctrl+C复制测试');
     document.body.appendChild(testDiv);
     
     setTimeout(() => {
@@ -621,7 +905,34 @@ window.testImageInliner = function() {
     }, 5000);
 };
 
-console.log('💡 提示：可以在控制台运行 testImageInliner() 来测试功能');
+// 添加配置管理的全局函数
+window.imageInlinerConfig = {
+    show: showHeadingConfigUI,
+    getConfig: () => headingReplacementConfig,
+    setConfig: (config) => {
+        headingReplacementConfig = { ...headingReplacementConfig, ...config };
+        saveHeadingConfig();
+    },
+    reset: () => {
+        headingReplacementConfig = {
+            enabled: false,
+            replacements: {
+                'h1': 'h3',
+                'h2': 'h3',
+                'h3': 'h3',
+                'h4': 'h4',
+                'h5': 'h5',
+                'h6': 'h6'
+            }
+        };
+        saveHeadingConfig();
+    }
+};
+
+console.log('💡 提示：');
+console.log('- 运行 testImageInliner() 测试功能');
+console.log('- 运行 imageInlinerConfig.show() 打开配置界面');
+console.log('- 使用快捷键 Ctrl+Shift+H 打开配置界面');
 
 // 监听扩展上下文失效事件
 window.addEventListener('beforeunload', () => {

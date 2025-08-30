@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>标题替换功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+        .test-container {
+            background: white;
+            border: 2px solid #1890ff;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .paste-area {
+            background: #f6ffed;
+            border: 2px dashed #52c41a;
+            border-radius: 8px;
+            padding: 25px;
+            min-height: 200px;
+            margin: 20px 0;
+        }
+        .config-area {
+            background: #fff7e6;
+            border: 2px solid #fa8c16;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover { 
+            background: #40a9ff; 
+            transform: translateY(-1px);
+        }
+        .btn.success { background: #52c41a; }
+        .btn.warning { background: #fa8c16; }
+        .btn.danger { background: #ff4d4f; }
+        
+        /* 示例标题样式 */
+        .sample-content h1 { color: #722ed1; font-size: 32px; margin: 15px 0; }
+        .sample-content h2 { color: #fa541c; font-size: 24px; margin: 12px 0; }
+        .sample-content h3 { color: #13c2c2; font-size: 20px; margin: 10px 0; }
+        .sample-content h4 { color: #52c41a; font-size: 18px; margin: 8px 0; }
+        .sample-content h5 { color: #1890ff; font-size: 16px; margin: 6px 0; }
+        .sample-content h6 { color: #666; font-size: 14px; margin: 4px 0; }
+        
+        .highlight { background: #fff2e6; padding: 2px 6px; border-radius: 3px; font-weight: bold; }
+        .status { padding: 8px 16px; border-radius: 4px; margin: 10px 0; font-weight: bold; }
+        .status.info { background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
+        .status.success { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+        .status.warning { background: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
+        
+        .config-display {
+            background: #f0f2f5;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 标题替换功能测试页面</h1>
+    
+    <div class="status info">
+        <strong>新功能说明：</strong> 现在可以在复制粘贴时自动将标题级别进行替换。例如将 H1、H2 都转换为 H3，确保内容格式的一致性。
+    </div>
+
+    <div class="config-area">
+        <h2>⚙️ 配置管理</h2>
+        <p>首先配置标题替换规则：</p>
+        
+        <div style="margin: 15px 0;">
+            <button class="btn success" onclick="openConfigUI()">🔧 打开配置界面</button>
+            <button class="btn" onclick="showCurrentConfig()">📋 查看当前配置</button>
+            <button class="btn warning" onclick="setQuickConfig()">⚡ 快速配置 (H1,H2→H3)</button>
+            <button class="btn danger" onclick="resetConfig()">🔄 重置配置</button>
+        </div>
+        
+        <div class="status warning">
+            <strong>快捷键：</strong> 按 <code>Ctrl + Shift + H</code> 快速打开配置界面
+        </div>
+        
+        <div id="configDisplay" class="config-display">
+            配置加载中...
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>📝 测试1：基础标题替换</h2>
+        <p>选择下面的内容进行复制测试（包含各级标题）：</p>
+        <div class="sample-content">
+            <h1>这是H1标题 - 紫色大字</h1>
+            <p>这是H1下的普通段落内容。</p>
+            
+            <h2>这是H2标题 - 橙色中字</h2>
+            <p>这是H2下的内容，通常用作二级标题。</p>
+            
+            <h3>这是H3标题 - 青色小字</h3>
+            <p>这是H3下的内容，常用作三级标题。</p>
+            
+            <h4>这是H4标题</h4>
+            <h5>这是H5标题</h5>
+            <h6>这是H6标题</h6>
+        </div>
+        
+        <button class="btn" onclick="selectContent('.sample-content')">选择并复制内容</button>
+        <button class="btn success" onclick="testHeadingReplacement()">专项测试标题替换</button>
+    </div>
+
+    <div class="test-container">
+        <h2>🖼️ 测试2：标题+图片混合内容</h2>
+        <p>测试在有图片的情况下标题替换是否正常工作：</p>
+        <div class="sample-content">
+            <h1 style="color: #ff4d4f;">产品介绍 - H1标题</h1>
+            <img src="https://via.placeholder.com/100x80/ff6b6b/ffffff?text=产品图" alt="产品图片" style="float: left; margin: 0 15px 15px 0; border-radius: 8px;">
+            <p>这是一个包含图片的产品介绍段落。</p>
+            
+            <h2 style="color: #1890ff;">功能特性 - H2标题</h2>
+            <ul>
+                <li>特性1：图片内联转换</li>
+                <li>特性2：标题级别替换</li>
+                <li>特性3：格式完美保持</li>
+            </ul>
+            
+            <h3 style="color: #52c41a;">技术规格 - H3标题</h3>
+            <img src="https://via.placeholder.com/80x60/4ecdc4/ffffff?text=技术" alt="技术图片" style="border: 2px solid #13c2c2; border-radius: 6px;">
+        </div>
+        
+        <button class="btn" onclick="selectContent('.test-container:nth-of-type(3) .sample-content')">选择混合内容</button>
+    </div>
+
+    <div class="test-container">
+        <h2>📊 测试3：复杂结构测试</h2>
+        <div class="sample-content">
+            <h1>文档标题</h1>
+            <table style="border-collapse: collapse; width: 100%; margin: 15px 0;">
+                <caption style="color: #722ed1; font-size: 16px; font-weight: bold; margin-bottom: 10px;">
+                    数据表格标题
+                </caption>
+                <tr>
+                    <th style="border: 1px solid #d9d9d9; padding: 8px; background: #fafafa;">项目</th>
+                    <th style="border: 1px solid #d9d9d9; padding: 8px; background: #fafafa;">状态</th>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #d9d9d9; padding: 8px;">测试项目</td>
+                    <td style="border: 1px solid #d9d9d9; padding: 8px;">
+                        <img src="https://via.placeholder.com/30x30/52c41a/ffffff?text=✓" alt="成功">
+                    </td>
+                </tr>
+            </table>
+            
+            <h2>总结部分</h2>
+            <p>这里包含了表格、图片和多级标题的复杂结构。</p>
+        </div>
+        
+        <button class="btn" onclick="selectContent('.test-container:nth-of-type(4) .sample-content')">选择复杂内容</button>
+    </div>
+
+    <div class="paste-area" contenteditable="true" id="pasteArea">
+        <p style="color: #666; text-align: center; font-style: italic;">
+            点击这里，然后按 Ctrl+V 粘贴刚才复制的内容...<br>
+            粘贴后检查标题级别是否按配置进行了替换
+        </p>
+    </div>
+
+    <div class="config-area">
+        <h3>🔍 检查要点</h3>
+        <ul>
+            <li>✅ 标题级别是否按配置正确替换（如H1→H3, H2→H3）</li>
+            <li>✅ 标题的颜色、字体等样式是否保持</li>
+            <li>✅ 图片是否正确转换为内联格式</li>
+            <li>✅ 表格标题是否转换为独立文字</li>
+            <li>✅ 整体内容结构是否完整</li>
+        </ul>
+        
+        <button class="btn" onclick="clearPasteArea()">清空粘贴区域</button>
+        <button class="btn" onclick="analyzeClipboard()">分析剪贴板内容</button>
+        <button class="btn" onclick="showDebugInfo()">显示调试信息</button>
+    </div>
+
+    <script>
+        // 打开配置界面
+        function openConfigUI() {
+            if (typeof window.imageInlinerConfig !== 'undefined') {
+                window.imageInlinerConfig.show();
+            } else {
+                alert('请确保插件已正确加载！\n\n可以按 F12 打开控制台查看是否有错误信息。');
+            }
+        }
+        
+        // 显示当前配置
+        function showCurrentConfig() {
+            if (typeof window.imageInlinerConfig !== 'undefined') {
+                const config = window.imageInlinerConfig.getConfig();
+                updateConfigDisplay(config);
+                console.log('当前配置:', config);
+            } else {
+                document.getElementById('configDisplay').textContent = '插件未加载或配置不可用';
+            }
+        }
+        
+        // 更新配置显示
+        function updateConfigDisplay(config) {
+            const display = document.getElementById('configDisplay');
+            display.innerHTML = `
+                <strong>标题替换功能：</strong> ${config.enabled ? '<span style="color: #52c41a;">✅ 已启用</span>' : '<span style="color: #ff4d4f;">❌ 未启用</span>'}<br><br>
+                <strong>替换规则：</strong><br>
+                ${Object.entries(config.replacements).map(([from, to]) => 
+                    `${from.toUpperCase()} → ${to.toUpperCase()}${from !== to ? ' 🔄' : ''}`
+                ).join('<br>')}
+            `;
+        }
+        
+        // 快速配置
+        function setQuickConfig() {
+            if (typeof window.imageInlinerConfig !== 'undefined') {
+                window.imageInlinerConfig.setConfig({
+                    enabled: true,
+                    replacements: {
+                        'h1': 'h3',
+                        'h2': 'h3',
+                        'h3': 'h3',
+                        'h4': 'h4',
+                        'h5': 'h5',
+                        'h6': 'h6'
+                    }
+                });
+                showCurrentConfig();
+                alert('✅ 快速配置完成！\nH1、H2 将被替换为 H3\nH3-H6 保持不变');
+            }
+        }
+        
+        // 重置配置
+        function resetConfig() {
+            if (typeof window.imageInlinerConfig !== 'undefined') {
+                window.imageInlinerConfig.reset();
+                showCurrentConfig();
+                alert('🔄 配置已重置');
+            }
+        }
+        
+        // 选择内容
+        function selectContent(selector) {
+            const element = document.querySelector(selector);
+            if (element) {
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(element);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+                console.log('已选择内容:', selector);
+                
+                // 自动复制
+                try {
+                    document.execCommand('copy');
+                    alert('✅ 内容已复制，请在绿色区域粘贴查看效果');
+                } catch (e) {
+                    alert('请手动按 Ctrl+C 复制选中内容');
+                }
+            }
+        }
+        
+        // 专项测试标题替换
+        function testHeadingReplacement() {
+            if (typeof window.testImageInliner === 'function') {
+                window.testImageInliner();
+                alert('✅ 已触发专项测试，请在粘贴区域粘贴查看效果');
+            } else {
+                alert('测试函数不可用，请检查插件是否正确加载');
+            }
+        }
+        
+        // 清空粘贴区域
+        function clearPasteArea() {
+            document.getElementById('pasteArea').innerHTML = 
+                '<p style="color: #666; text-align: center; font-style: italic;">点击这里，然后按 Ctrl+V 粘贴刚才复制的内容...<br>粘贴后检查标题级别是否按配置进行了替换</p>';
+        }
+        
+        // 分析剪贴板内容
+        async function analyzeClipboard() {
+            try {
+                const clipboardItems = await navigator.clipboard.read();
+                console.log('=== 剪贴板分析 ===');
+                
+                for (const item of clipboardItems) {
+                    if (item.types.includes('text/html')) {
+                        const htmlBlob = await item.getType('text/html');
+                        const html = await htmlBlob.text();
+                        
+                        console.log('HTML长度:', html.length);
+                        
+                        // 分析标题
+                        const headingCounts = {};
+                        ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].forEach(tag => {
+                            const count = (html.match(new RegExp(`<${tag}[^>]*>`, 'gi')) || []).length;
+                            if (count > 0) headingCounts[tag.toUpperCase()] = count;
+                        });
+                        
+                        console.log('标题统计:', headingCounts);
+                        console.log('包含图片:', (html.match(/data:image/g) || []).length, '张内联图片');
+                        console.log('包含表格:', html.includes('<table>'));
+                        
+                        alert(`剪贴板分析完成：\n标题统计: ${JSON.stringify(headingCounts)}\n详细信息请查看控制台`);
+                    }
+                }
+            } catch (e) {
+                console.error('剪贴板分析失败:', e);
+                alert('无法分析剪贴板，请检查权限设置');
+            }
+        }
+        
+        // 显示调试信息
+        function showDebugInfo() {
+            console.log('=== 调试信息 ===');
+            console.log('插件配置API:', typeof window.imageInlinerConfig);
+            console.log('测试函数:', typeof window.testImageInliner);
+            
+            if (typeof window.imageInlinerConfig !== 'undefined') {
+                console.log('当前配置:', window.imageInlinerConfig.getConfig());
+            }
+            
+            console.log('页面中的标题元素:');
+            ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].forEach(tag => {
+                const elements = document.querySelectorAll(tag);
+                if (elements.length > 0) {
+                    console.log(`${tag.toUpperCase()}: ${elements.length}个`);
+                }
+            });
+        }
+        
+        // 监听粘贴事件
+        document.addEventListener('paste', (e) => {
+            console.log('=== 粘贴事件分析 ===');
+            const htmlData = e.clipboardData?.getData('text/html');
+            if (htmlData) {
+                // 快速分析粘贴的内容
+                const headingCounts = {};
+                ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].forEach(tag => {
+                    const count = (htmlData.match(new RegExp(`<${tag}[^>]*>`, 'gi')) || []).length;
+                    if (count > 0) headingCounts[tag.toUpperCase()] = count;
+                });
+                
+                console.log('粘贴内容标题统计:', headingCounts);
+                console.log('包含data:image图片:', (htmlData.match(/data:image/g) || []).length);
+            }
+        });
+        
+        // 页面加载时显示配置
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                showCurrentConfig();
+            }, 500);
+        });
+        
+        console.log('标题替换功能测试页面已加载');
+        console.log('快捷键: Ctrl+Shift+H 打开配置界面');
+    </script>
+</body>
+</html>
