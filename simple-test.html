@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单图片复制测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-content {
+            border: 2px solid #007acc;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f8f9fa;
+        }
+        .result-area {
+            border: 2px dashed #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 200px;
+            background-color: #f8fff9;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        img {
+            max-width: 150px;
+            margin: 10px;
+            vertical-align: middle;
+        }
+        .format-text {
+            color: #dc3545;
+            font-weight: bold;
+            background-color: #fff3cd;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>图片复制内联化测试 - 简化版</h1>
+    
+    <div class="instructions">
+        <h3>📋 测试步骤：</h3>
+        <ol>
+            <li>确保Chrome插件已安装并刷新页面</li>
+            <li>选择下方蓝色框中的全部内容（Ctrl+A或鼠标拖选）</li>
+            <li>复制内容（Ctrl+C）</li>
+            <li>等待控制台提示"图片转换完成"</li>
+            <li>在绿色框中粘贴（Ctrl+V）</li>
+            <li>检查格式和图片是否正确显示</li>
+        </ol>
+    </div>
+
+    <div class="test-content" id="source">
+        <h4>这是一个标题</h4>
+        <p>这是一段包含<span class="format-text">特殊格式</span>的文字。</p>
+        <p>这里有一张图片：<img src="https://via.placeholder.com/100/ff0000/ffffff?text=RED" alt="红色图片"> 图片后的文字。</p>
+        <p>还有另一张图片：<img src="https://via.placeholder.com/100/00ff00/ffffff?text=GREEN" alt="绿色图片"> 继续文字内容。</p>
+        <p><strong>粗体文字</strong>和<em>斜体文字</em>的组合。</p>
+    </div>
+
+    <div class="result-area" contenteditable="true">
+        <p><em>在这里粘贴内容...</em></p>
+    </div>
+
+    <div id="status"></div>
+
+    <script>
+        let copyCount = 0;
+        const statusDiv = document.getElementById('status');
+
+        function updateStatus(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
+            statusDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            statusDiv.scrollTop = statusDiv.scrollHeight;
+        }
+
+        // 监听键盘事件
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                copyCount++;
+                updateStatus(`复制操作 #${copyCount} 开始`);
+                
+                // 检查选中内容
+                const selection = window.getSelection();
+                const selectedText = selection.toString();
+                if (selectedText.length > 0) {
+                    updateStatus(`选中内容长度: ${selectedText.length} 字符`);
+                    
+                    // 检查是否包含图片
+                    const range = selection.getRangeAt(0);
+                    const fragment = range.cloneContents();
+                    const images = fragment.querySelectorAll('img');
+                    if (images.length > 0) {
+                        updateStatus(`发现 ${images.length} 张图片，等待转换...`);
+                    }
+                }
+            }
+        });
+
+        // 监听复制事件
+        document.addEventListener('copy', (e) => {
+            updateStatus('浏览器复制事件触发');
+        });
+
+        // 监听粘贴事件
+        document.addEventListener('paste', (e) => {
+            updateStatus('粘贴事件触发');
+            
+            const htmlData = e.clipboardData?.getData('text/html');
+            if (htmlData) {
+                const dataUrlCount = (htmlData.match(/src="data:image/g) || []).length;
+                const httpUrlCount = (htmlData.match(/src="http/g) || []).length;
+                
+                if (dataUrlCount > 0) {
+                    updateStatus(`✅ 成功：包含 ${dataUrlCount} 个data URL图片`, 'success');
+                } else if (httpUrlCount > 0) {
+                    updateStatus(`❌ 失败：仍包含 ${httpUrlCount} 个HTTP图片链接`, 'error');
+                } else {
+                    updateStatus('无图片内容');
+                }
+                
+                // 检查格式保持
+                if (htmlData.includes('format-text') && htmlData.includes('background-color')) {
+                    updateStatus('✅ 格式保持：CSS样式已保留', 'success');
+                } else {
+                    updateStatus('❌ 格式丢失：CSS样式可能丢失', 'error');
+                }
+            }
+        });
+
+        // 页面加载完成
+        updateStatus('测试页面已加载，可以开始测试');
+    </script>
+</body>
+</html>

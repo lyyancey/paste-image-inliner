@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片粘贴测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 200px;
+        }
+        .source-area {
+            background-color: #f0f8ff;
+        }
+        .target-area {
+            background-color: #fff8f0;
+        }
+        .editor {
+            border: 1px solid #ddd;
+            padding: 10px;
+            min-height: 150px;
+            background: white;
+        }
+        .instructions {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        img {
+            max-width: 200px;
+            margin: 10px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>图片粘贴内联化测试</h1>
+    
+    <div class="instructions">
+        <h3>使用说明：</h3>
+        <ol>
+            <li>安装Chrome插件后刷新此页面</li>
+            <li>在下方"源内容区域"中选择包含图片的内容（Ctrl+A）</li>
+            <li>复制选中内容（Ctrl+C）</li>
+            <li>在"目标编辑区域"中粘贴（Ctrl+V）</li>
+            <li>检查图片是否被正确内联为data URL</li>
+        </ol>
+    </div>
+
+    <div class="test-area source-area">
+        <h3>源内容区域（从这里复制）</h3>
+        <div style="border: 1px solid #ccc; padding: 15px; background: white;">
+            <h4 style="color: #2196F3; font-family: Arial;">标题文字 - 蓝色Arial字体</h4>
+            <p style="font-size: 16px; line-height: 1.5; color: #333;">
+                这是一段<strong style="color: red;">加粗红色</strong>的文字，还有
+                <em style="background-color: yellow;">斜体黄色背景</em>的效果。
+            </p>
+            <img src="https://via.placeholder.com/150/0000FF/FFFFFF?text=Image1" alt="测试图片1" style="border: 3px solid #f00; border-radius: 10px;">
+            <ul style="background-color: #f0f8ff; padding: 10px;">
+                <li style="color: #666; margin: 5px 0;">列表项目1 - 灰色文字</li>
+                <li style="color: #666; margin: 5px 0;"><span style="text-decoration: underline;">带下划线的列表项目2</span></li>
+            </ul>
+            <blockquote style="border-left: 4px solid #2196F3; padding-left: 10px; margin: 10px 0; font-style: italic; background-color: #f5f5f5;">
+                这是一个引用块，具有特殊的样式和
+                <img src="https://via.placeholder.com/100/FF0000/FFFFFF?text=Quote" alt="引用中的图片" style="vertical-align: middle; margin: 0 5px;">
+                内嵌图片
+            </blockquote>
+            <p style="text-align: center; font-weight: bold; color: #009688;">
+                居中对齐的绿色粗体文字
+            </p>
+            <div style="display: flex; align-items: center; gap: 10px; background-color: #fff3e0; padding: 10px; border-radius: 5px;">
+                <img src="https://via.placeholder.com/80/FF9800/FFFFFF?text=Flex" alt="Flex布局图片" style="flex-shrink: 0;">
+                <span style="color: #E65100; font-size: 14px;">Flex布局中的图片和文字组合</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-area target-area">
+        <h3>目标编辑区域（粘贴到这里）</h3>
+        <div class="editor" contenteditable="true" placeholder="在这里粘贴内容...">
+            <!-- 粘贴的内容会出现在这里 -->
+        </div>
+    </div>
+
+    <div class="test-area">
+        <h3>钉钉文档编辑器模拟</h3>
+        <div class="editor" contenteditable="true" style="background-color: #fafafa;">
+            <!-- 模拟钉钉编辑器 -->
+        </div>
+    </div>
+
+    <script>
+        // 添加一些调试信息
+        console.log('测试页面已加载');
+        
+        // 监听粘贴事件，输出调试信息
+        document.addEventListener('paste', (e) => {
+            console.log('粘贴事件触发');
+            const htmlData = e.clipboardData?.getData('text/html');
+            const textData = e.clipboardData?.getData('text/plain');
+            
+            console.log('HTML内容长度:', htmlData ? htmlData.length : 0);
+            console.log('HTML内容预览:', htmlData ? htmlData.substring(0, 200) + '...' : '无');
+            console.log('纯文本内容:', textData);
+            
+            // 检查是否包含data URL图片
+            if (htmlData) {
+                const dataUrlCount = (htmlData.match(/src="data:image/g) || []).length;
+                const httpUrlCount = (htmlData.match(/src="http/g) || []).length;
+                console.log('包含data URL图片数量:', dataUrlCount);
+                console.log('包含HTTP URL图片数量:', httpUrlCount);
+            }
+        });
+
+        // 监听复制事件，输出调试信息
+        document.addEventListener('copy', (e) => {
+            console.log('复制事件触发');
+            const selection = window.getSelection();
+            console.log('选中内容:', selection.toString().substring(0, 100) + '...');
+            
+            // 延迟检查剪贴板内容
+            setTimeout(async () => {
+                try {
+                    const clipboardItems = await navigator.clipboard.read();
+                    for (const item of clipboardItems) {
+                        console.log('剪贴板项目类型:', item.types);
+                        if (item.types.includes('text/html')) {
+                            const htmlBlob = await item.getType('text/html');
+                            const htmlContent = await htmlBlob.text();
+                            const dataUrlCount = (htmlContent.match(/src="data:image/g) || []).length;
+                            console.log('剪贴板HTML中的data URL图片数量:', dataUrlCount);
+                        }
+                    }
+                } catch (e) {
+                    console.log('无法读取剪贴板内容:', e);
+                }
+            }, 100);
+        });
+
+        // 添加格式检查功能
+        function checkClipboardContent() {
+            navigator.clipboard.read().then(items => {
+                items.forEach(item => {
+                    console.log('剪贴板类型:', item.types);
+                    if (item.types.includes('text/html')) {
+                        item.getType('text/html').then(blob => blob.text()).then(html => {
+                            console.log('剪贴板HTML:', html.substring(0, 500) + '...');
+                        });
+                    }
+                });
+            }).catch(e => console.log('读取剪贴板失败:', e));
+        }
+
+        // 添加按钮供手动检查
+        const button = document.createElement('button');
+        button.textContent = '检查剪贴板内容';
+        button.onclick = checkClipboardContent;
+        button.style.position = 'fixed';
+        button.style.top = '10px';
+        button.style.right = '10px';
+        button.style.zIndex = '9999';
+        button.style.padding = '10px';
+        button.style.backgroundColor = '#2196F3';
+        button.style.color = 'white';
+        button.style.border = 'none';
+        button.style.borderRadius = '5px';
+        button.style.cursor = 'pointer';
+        document.body.appendChild(button);
+    </script>
+</body>
+</html>

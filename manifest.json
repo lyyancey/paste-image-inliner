@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Paste Image Inliner",
+  "version": "1.0.0",
+  "description": "将粘贴的HTML中的<img>外链转为内联data URL，一次性把文字+图片粘进去。",
+  "permissions": ["scripting", "activeTab", "clipboardWrite", "clipboardRead"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["content.js"],
+    "run_at": "document_idle",
+    "all_frames": true,
+    "match_about_blank": true
+  }]
+}
