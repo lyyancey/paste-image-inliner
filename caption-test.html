@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表格标题专项测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-area {
+            background: white;
+            border: 2px solid #1890ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .paste-area {
+            background: #f6ffed;
+            border: 2px dashed #52c41a;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 100px;
+            margin: 20px 0;
+        }
+        .btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover { background: #40a9ff; }
+        .highlight { background: #fff2e6; padding: 2px 4px; border-radius: 2px; }
+        
+        /* 表格样式 */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #d9d9d9;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background: #fafafa;
+            font-weight: bold;
+        }
+        
+        /* 不同的caption样式 */
+        .caption-top {
+            caption-side: top;
+            color: #ff4d4f;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .caption-bottom {
+            caption-side: bottom;
+            color: #1890ff;
+            font-size: 14px;
+            font-style: italic;
+            margin-top: 10px;
+            text-align: right;
+        }
+        
+        .caption-fancy {
+            caption-side: top;
+            background: #f0f2f5;
+            color: #722ed1;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 8px 15px;
+            border: 2px solid #d3adf7;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 表格标题(Caption)专项测试</h1>
+    <p>这个页面专门测试表格标题是否能正确复制粘贴，包括各种样式的标题。</p>
+
+    <div class="test-area">
+        <h2>测试1：顶部标题表格</h2>
+        <p>选择下面的<span class="highlight">整个表格</span>进行复制：</p>
+        <table>
+            <caption class="caption-top">📊 销售数据统计表</caption>
+            <thead>
+                <tr>
+                    <th>月份</th>
+                    <th>销售额</th>
+                    <th>增长率</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1月</td>
+                    <td>100万</td>
+                    <td>+5%</td>
+                </tr>
+                <tr>
+                    <td>2月</td>
+                    <td>120万</td>
+                    <td>+20%</td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="btn" onclick="selectAndCopy(this.parentElement.querySelector('table'))">选择并复制此表格</button>
+    </div>
+
+    <div class="test-area">
+        <h2>测试2：底部标题表格</h2>
+        <p>选择下面的<span class="highlight">整个表格</span>进行复制：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>产品名称</th>
+                    <th>价格</th>
+                    <th>库存</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>iPhone 15</td>
+                    <td>¥7999</td>
+                    <td>50台</td>
+                </tr>
+                <tr>
+                    <td>MacBook Pro</td>
+                    <td>¥19999</td>
+                    <td>30台</td>
+                </tr>
+            </tbody>
+            <caption class="caption-bottom">数据来源：库存管理系统</caption>
+        </table>
+        <button class="btn" onclick="selectAndCopy(this.parentElement.querySelector('table'))">选择并复制此表格</button>
+    </div>
+
+    <div class="test-area">
+        <h2>测试3：复杂样式标题表格</h2>
+        <p>选择下面的<span class="highlight">整个表格</span>进行复制：</p>
+        <table>
+            <caption class="caption-fancy">🎯 项目进度跟踪表 - 2025年第一季度</caption>
+            <thead>
+                <tr>
+                    <th>项目名称</th>
+                    <th>负责人</th>
+                    <th>进度</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>网站重构</td>
+                    <td>张三</td>
+                    <td>85%</td>
+                    <td style="color: #52c41a; font-weight: bold;">进行中</td>
+                </tr>
+                <tr>
+                    <td>移动端开发</td>
+                    <td>李四</td>
+                    <td>45%</td>
+                    <td style="color: #fa8c16; font-weight: bold;">延期</td>
+                </tr>
+                <tr>
+                    <td>数据分析</td>
+                    <td>王五</td>
+                    <td>100%</td>
+                    <td style="color: #1890ff; font-weight: bold;">已完成</td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="btn" onclick="selectAndCopy(this.parentElement.querySelector('table'))">选择并复制此表格</button>
+    </div>
+
+    <div class="test-area">
+        <h2>测试4：混合内容（表格+图片）</h2>
+        <p>选择下面的<span class="highlight">所有内容</span>进行复制：</p>
+        <h3 style="color: #722ed1;">团队成员信息</h3>
+        <table>
+            <caption style="color: #13c2c2; font-size: 16px; font-weight: bold; margin-bottom: 8px;">👥 核心团队成员列表</caption>
+            <thead>
+                <tr>
+                    <th>姓名</th>
+                    <th>头像</th>
+                    <th>职位</th>
+                    <th>技能</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>张工程师</td>
+                    <td><img src="https://via.placeholder.com/40x40/ff6b6b/ffffff?text=张" alt="张工程师" style="border-radius: 50%;"></td>
+                    <td>前端工程师</td>
+                    <td>React, Vue, TypeScript</td>
+                </tr>
+                <tr>
+                    <td>李设计师</td>
+                    <td><img src="https://via.placeholder.com/40x40/4ecdc4/ffffff?text=李" alt="李设计师" style="border-radius: 50%;"></td>
+                    <td>UI设计师</td>
+                    <td>Figma, Sketch, Photoshop</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="color: #666; font-style: italic;">最后更新：2025年8月30日</p>
+        <button class="btn" onclick="selectAndCopyAll(this.parentElement, ['h3', 'table', 'p'])">选择并复制混合内容</button>
+    </div>
+
+    <div class="test-area">
+        <h2>测试5：Caption转换测试 🆕</h2>
+        <p><strong>新功能</strong>：将 &lt;caption&gt; 标签转换为表格上方的独立文字</p>
+        <p>选择下面的<span class="highlight">整个表格</span>，复制后应该看到标题变成独立的文字段落：</p>
+        <table>
+            <caption style="color: #722ed1; font-size: 20px; font-weight: bold; background: #f9f0ff; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center;">
+                🎯 这个标题将被转换为独立文字
+            </caption>
+            <thead>
+                <tr>
+                    <th>转换前</th>
+                    <th>转换后</th>
+                    <th>效果</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>&lt;caption&gt;标签</td>
+                    <td>独立的&lt;div&gt;文字</td>
+                    <td style="color: #52c41a; font-weight: bold;">✅ 完全保持格式</td>
+                </tr>
+                <tr>
+                    <td>可能不显示</td>
+                    <td>确保显示</td>
+                    <td style="color: #1890ff; font-weight: bold;">🎉 兼容性更好</td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="btn" onclick="selectAndCopy(this.parentElement.querySelector('table'))">测试Caption转换</button>
+    </div>
+
+    <div class="test-area">
+        <h2>测试6：多种Caption样式转换</h2>
+        <p>测试各种不同样式的caption都能正确转换：</p>
+        
+        <!-- 第一个表格：简单样式 -->
+        <table style="margin-bottom: 30px;">
+            <caption style="color: #ff4d4f; font-size: 16px; font-weight: bold; text-align: left;">
+                简单红色标题
+            </caption>
+            <tr>
+                <td style="border: 1px solid #ccc; padding: 8px;">数据1</td>
+                <td style="border: 1px solid #ccc; padding: 8px;">数据2</td>
+            </tr>
+        </table>
+        
+        <!-- 第二个表格：复杂样式 -->
+        <table style="margin-bottom: 30px;">
+            <caption style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; font-size: 18px; font-weight: bold; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                🌟 复杂渐变背景标题
+            </caption>
+            <tr>
+                <td style="border: 1px solid #ccc; padding: 8px;">测试A</td>
+                <td style="border: 1px solid #ccc; padding: 8px;">测试B</td>
+            </tr>
+        </table>
+        
+        <!-- 第三个表格：带图片的混合内容 -->
+        <table>
+            <caption style="color: #13c2c2; font-size: 14px; font-style: italic; padding: 8px; border: 2px dashed #13c2c2; background: #e6fffb;">
+                📊 包含图片的数据表格
+            </caption>
+            <tr>
+                <td style="border: 1px solid #ccc; padding: 8px;">项目</td>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                    <img src="https://via.placeholder.com/30x30/13c2c2/ffffff?text=图" alt="测试图片" style="border-radius: 4px;">
+                </td>
+            </tr>
+        </table>
+        
+        <button class="btn" onclick="selectAndCopyMultiple(this.parentElement)">选择所有表格测试</button>
+    </div>
+
+    <div class="paste-area" contenteditable="true" id="pasteArea">
+        <p style="color: #666; text-align: center;">点击这里，然后按 Ctrl+V 粘贴刚才复制的表格...</p>
+    </div>
+
+    <div style="background: white; border-radius: 8px; padding: 15px; margin: 20px 0;">
+        <h3>� 预期效果说明</h3>
+        <div style="background: #f0f9ff; padding: 15px; border-radius: 6px; border-left: 4px solid #1890ff;">
+            <h4>Caption 转换功能：</h4>
+            <ul>
+                <li>✅ <strong>转换前</strong>：标题在 &lt;caption&gt; 标签内，可能不显示</li>
+                <li>✅ <strong>转换后</strong>：标题变成表格上方的独立文字</li>
+                <li>✅ <strong>样式保持</strong>：颜色、字体、背景等完全保留</li>
+                <li>✅ <strong>位置正确</strong>：始终显示在表格上方</li>
+                <li>✅ <strong>兼容性</strong>：在任何编辑器中都能正确显示</li>
+            </ul>
+        </div>
+        
+        <h4>📋 测试检查列表：</h4>
+        <ol>
+            <li>标题文字是否出现在表格上方？</li>
+            <li>标题的颜色、字体大小是否保持？</li>
+            <li>标题的背景色、边框等样式是否保持？</li>
+            <li>表格结构是否完整？</li>
+            <li>图片是否正确转换为内联格式？</li>
+        </ol>
+    </div>
+
+    <script>
+        function selectAndCopyMultiple(containerElement) {
+            const selection = window.getSelection();
+            const range = document.createRange();
+            
+            // 选择容器内的所有内容
+            const firstTable = containerElement.querySelector('table');
+            const lastTable = containerElement.querySelectorAll('table');
+            const lastTableElement = lastTable[lastTable.length - 1];
+            
+            if (firstTable && lastTableElement) {
+                range.setStartBefore(firstTable);
+                range.setEndAfter(lastTableElement);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+                console.log('已选择多个表格');
+                
+                try {
+                    document.execCommand('copy');
+                    console.log('✅ 多表格复制成功');
+                    alert('多个表格已复制，请在绿色区域粘贴查看caption转换效果');
+                } catch (e) {
+                    console.error('❌ 复制失败:', e);
+                }
+            }
+        }
+        
+        function selectAndCopy(tableElement) {
+            const selection = window.getSelection();
+            const range = document.createRange();
+            
+            // 选择整个表格，包括caption
+            range.selectNode(tableElement);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            console.log('已选择表格，范围:', range.toString());
+            
+            // 执行复制
+            try {
+                document.execCommand('copy');
+                console.log('✅ 表格复制成功');
+                alert('表格已复制，请在绿色区域粘贴查看效果');
+            } catch (e) {
+                console.error('❌ 复制失败:', e);
+            }
+        }
+        
+        function selectAndCopyAll(containerElement, selectors) {
+            const selection = window.getSelection();
+            const range = document.createRange();
+            
+            // 找到第一个和最后一个元素
+            const firstElement = containerElement.querySelector(selectors[0]);
+            const lastElement = containerElement.querySelector(selectors[selectors.length - 1]);
+            
+            if (firstElement && lastElement) {
+                range.setStartBefore(firstElement);
+                range.setEndAfter(lastElement);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+                console.log('已选择混合内容');
+                
+                try {
+                    document.execCommand('copy');
+                    console.log('✅ 混合内容复制成功');
+                    alert('混合内容已复制，请在绿色区域粘贴查看效果');
+                } catch (e) {
+                    console.error('❌ 复制失败:', e);
+                }
+            }
+        }
+        
+        function clearPasteArea() {
+            document.getElementById('pasteArea').innerHTML = 
+                '<p style="color: #666; text-align: center;">点击这里，然后按 Ctrl+V 粘贴刚才复制的表格...</p>';
+        }
+        
+        async function analyzeClipboard() {
+            try {
+                const clipboardItems = await navigator.clipboard.read();
+                console.log('=== 剪贴板分析 ===');
+                
+                for (const item of clipboardItems) {
+                    console.log('可用类型:', item.types);
+                    
+                    if (item.types.includes('text/html')) {
+                        const htmlBlob = await item.getType('text/html');
+                        const html = await htmlBlob.text();
+                        
+                        console.log('HTML长度:', html.length);
+                        console.log('包含<caption>标签:', html.includes('<caption>'));
+                        console.log('包含caption数量:', (html.match(/<caption/g) || []).length);
+                        console.log('包含</caption>数量:', (html.match(/<\/caption>/g) || []).length);
+                        console.log('包含<table>标签:', html.includes('<table>'));
+                        console.log('包含data:image图片:', (html.match(/data:image/g) || []).length);
+                        
+                        // 显示HTML片段
+                        console.log('HTML内容预览:');
+                        console.log(html.substring(0, 500) + '...');
+                        
+                        alert('剪贴板分析完成，请查看控制台详细信息');
+                    }
+                }
+            } catch (e) {
+                console.error('无法分析剪贴板:', e);
+                alert('无法分析剪贴板，请检查权限设置');
+            }
+        }
+        
+        function showTableInfo() {
+            const tables = document.querySelectorAll('table');
+            console.log('=== 页面表格信息 ===');
+            tables.forEach((table, index) => {
+                const caption = table.querySelector('caption');
+                console.log(`表格 ${index + 1}:`);
+                console.log('  有标题:', !!caption);
+                if (caption) {
+                    console.log('  标题内容:', caption.textContent);
+                    console.log('  标题样式:', caption.getAttribute('style'));
+                    console.log('  caption-side:', window.getComputedStyle(caption).captionSide);
+                }
+                console.log('  行数:', table.rows.length);
+                console.log('---');
+            });
+        }
+        
+        // 监听粘贴事件
+        document.addEventListener('paste', (e) => {
+            console.log('=== 粘贴事件 ===');
+            const htmlData = e.clipboardData?.getData('text/html');
+            if (htmlData) {
+                console.log('粘贴HTML长度:', htmlData.length);
+                console.log('包含caption:', htmlData.includes('<caption>'));
+                console.log('caption数量:', (htmlData.match(/<caption/g) || []).length);
+                console.log('包含独立div:', htmlData.includes('<div'));
+                
+                // 检查caption内容
+                const captionMatch = htmlData.match(/<caption[^>]*>(.*?)<\/caption>/g);
+                if (captionMatch) {
+                    console.log('发现的caption:', captionMatch);
+                } else {
+                    console.log('✅ 没有caption标签，可能已转换为div');
+                }
+                
+                // 检查转换后的div
+                const divMatch = htmlData.match(/<div[^>]*style="[^"]*"[^>]*>([^<]*)</g);
+                if (divMatch) {
+                    console.log('发现的样式div:', divMatch);
+                }
+            }
+        });
+        
+        function testCaptionConversion() {
+            console.log('=== Caption转换专项测试 ===');
+            
+            // 创建一个测试表格
+            const testDiv = document.createElement('div');
+            testDiv.innerHTML = `
+                <table style="border-collapse: collapse;">
+                    <caption style="color: red; font-size: 18px; font-weight: bold; background: yellow; padding: 5px;">
+                        🧪 测试标题转换
+                    </caption>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px;">测试数据</td>
+                    </tr>
+                </table>
+            `;
+            
+            document.body.appendChild(testDiv);
+            
+            // 选择整个内容
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(testDiv);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // 执行复制
+            document.execCommand('copy');
+            console.log('Caption转换测试复制完成');
+            
+            // 清理
+            document.body.removeChild(testDiv);
+            
+            alert('Caption转换测试完成，请在粘贴区域查看效果');
+        }
+        
+        console.log('表格标题专项测试页面已加载');
+        console.log('页面包含', document.querySelectorAll('table').length, '个测试表格');
+    </script>
+</body>
+</html>

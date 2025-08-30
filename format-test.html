@@ -180,6 +180,9 @@
             </ul>
             
             <table style="border-collapse: collapse; width: 100%; margin: 15px 0;">
+                <caption style="font-size: 18px; color: #722ed1; font-weight: bold; margin-bottom: 10px; text-align: left; caption-side: top;">
+                    📋 测试数据表格标题
+                </caption>
                 <tr style="background: #f0f2f5;">
                     <th style="border: 1px solid #d9d9d9; padding: 8px; color: #1890ff;">列1</th>
                     <th style="border: 1px solid #d9d9d9; padding: 8px; color: #1890ff;">列2</th>
@@ -193,12 +196,80 @@
                     </td>
                 </tr>
             </table>
+            
+            <table style="border-collapse: collapse; width: 100%; margin: 15px 0; border: 2px solid #ff7875;">
+                <caption style="font-size: 16px; color: #ff4d4f; font-style: italic; margin-bottom: 8px; text-align: center; caption-side: top; background: #fff1f0; padding: 5px; border-radius: 4px;">
+                    🖼️ 带图片的表格 - 第二个测试表
+                </caption>
+                <tr style="background: #fff7e6;">
+                    <th style="border: 1px solid #ffadd6; padding: 10px; color: #d46b08;">名称</th>
+                    <th style="border: 1px solid #ffadd6; padding: 10px; color: #d46b08;">图片</th>
+                    <th style="border: 1px solid #ffadd6; padding: 10px; color: #d46b08;">描述</th>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ffadd6; padding: 10px; color: #722ed1;">示例项目</td>
+                    <td style="border: 1px solid #ffadd6; padding: 10px; text-align: center;">
+                        <img src="https://via.placeholder.com/50x50/fa541c/ffffff?text=样例" alt="样例图片" style="border-radius: 50%;">
+                    </td>
+                    <td style="border: 1px solid #ffadd6; padding: 10px; color: #13c2c2; font-style: italic;">这是一个测试描述</td>
+                </tr>
+            </table>
         </div>
         
         <button class="btn" onclick="copyContent('structuredContent')">复制结构化内容</button>
         
         <h3>粘贴区域：</h3>
         <div class="paste-area" contenteditable="true" id="pasteStructured">
+            点击这里，然后按 Ctrl+V 粘贴...
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📄 测试4：专门的表格标题测试</h2>
+        <div class="copy-area" id="captionTest">
+            <h3 class="green-text">表格标题专项测试</h3>
+            <p>下面是几个不同样式的表格标题：</p>
+            
+            <table style="border: 1px solid #000; margin: 10px 0; width: 100%;">
+                <caption style="color: #ff4d4f; font-size: 20px; font-weight: bold; caption-side: top; margin-bottom: 10px;">
+                    顶部标题 - 红色粗体大字
+                </caption>
+                <tr>
+                    <td style="border: 1px solid #ccc; padding: 8px;">单元格1</td>
+                    <td style="border: 1px solid #ccc; padding: 8px;">单元格2</td>
+                </tr>
+            </table>
+            
+            <table style="border: 1px solid #000; margin: 10px 0; width: 100%;">
+                <caption style="color: #1890ff; font-size: 14px; font-style: italic; caption-side: bottom; margin-top: 10px; text-align: right;">
+                    底部标题 - 蓝色斜体右对齐
+                </caption>
+                <tr>
+                    <td style="border: 1px solid #ccc; padding: 8px;">数据A</td>
+                    <td style="border: 1px solid #ccc; padding: 8px;">
+                        <img src="https://via.placeholder.com/30x30/52c41a/ffffff?text=C" alt="表格内图片">
+                    </td>
+                </tr>
+            </table>
+            
+            <table style="border: 2px solid #722ed1; margin: 10px 0; width: 100%;">
+                <caption style="background: #f9f0ff; color: #722ed1; font-size: 16px; padding: 8px; border: 1px solid #d3adf7; border-radius: 4px; caption-side: top; margin-bottom: 5px;">
+                    🎯 复杂样式标题 - 带背景和边框
+                </caption>
+                <tr style="background: #fafafa;">
+                    <td style="border: 1px solid #722ed1; padding: 10px; color: #fa541c;">复杂表格</td>
+                    <td style="border: 1px solid #722ed1; padding: 10px;">
+                        <img src="https://via.placeholder.com/40x40/722ed1/ffffff?text=紫" alt="紫色图片">
+                    </td>
+                    <td style="border: 1px solid #722ed1; padding: 10px; color: #13c2c2;">测试内容</td>
+                </tr>
+            </table>
+        </div>
+        
+        <button class="btn" onclick="copyContent('captionTest')">复制表格标题测试</button>
+        
+        <h3>粘贴区域：</h3>
+        <div class="paste-area" contenteditable="true" id="pasteCaptions">
             点击这里，然后按 Ctrl+V 粘贴...
         </div>
     </div>
@@ -220,11 +291,14 @@
             <li>✅ 背景色和边框样式是否保留</li>
             <li>✅ 标题层级是否正确</li>
             <li>✅ 表格和列表结构是否完整</li>
+            <li>✅ <strong>表格标题(caption)是否正确显示</strong> 🆕</li>
+            <li>✅ 表格标题的样式(颜色、字体、位置)是否保持 🆕</li>
             <li>✅ 图片是否显示且已转换为内联格式</li>
         </ul>
         
         <button class="btn" onclick="clearAllPasteAreas()">清空所有粘贴区域</button>
         <button class="btn" onclick="showClipboardInfo()">查看剪贴板信息</button>
+        <button class="btn" onclick="testCaptionOnly()">仅测试表格标题</button>
     </div>
 
     <script>
@@ -242,6 +316,34 @@
             } catch (e) {
                 console.error('复制失败:', e);
             }
+        }
+        
+        function testCaptionOnly() {
+            console.log('=== 专门测试表格标题 ===');
+            
+            // 创建一个简单的测试表格
+            const testTable = document.createElement('table');
+            testTable.style.border = '1px solid #000';
+            testTable.innerHTML = `
+                <caption style="color: red; font-size: 18px; font-weight: bold;">测试标题</caption>
+                <tr><td style="border: 1px solid #ccc; padding: 5px;">测试内容</td></tr>
+            `;
+            
+            document.body.appendChild(testTable);
+            
+            // 选择整个表格
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNode(testTable);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // 执行复制
+            document.execCommand('copy');
+            console.log('表格标题测试复制完成');
+            
+            // 清理
+            document.body.removeChild(testTable);
         }
         
         function clearAllPasteAreas() {

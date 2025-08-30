@@ -55,9 +55,43 @@ document.addEventListener('copy', async (e) => {
         const selection = window.getSelection();
         if (!selection.rangeCount) return;
 
+        // 先检查选中内容，确保表格完整性
         const range = selection.getRangeAt(0);
+        let adjustedRange = range.cloneRange();
+        let needsAdjustment = false;
+        
+        // 检查选中范围是否包含不完整的表格
         const fragment = range.cloneContents();
-        const images = fragment.querySelectorAll('img');
+        const partialTables = fragment.querySelectorAll('table');
+        
+        if (partialTables.length > 0) {
+            console.log('🔍 检测到表格，检查是否需要调整选中范围...');
+            
+            // 找到完整的表格并调整选中范围
+            const commonAncestor = range.commonAncestorContainer;
+            const allTablesInRange = commonAncestor.nodeType === Node.ELEMENT_NODE ? 
+                commonAncestor.querySelectorAll('table') : 
+                (commonAncestor.parentElement ? commonAncestor.parentElement.querySelectorAll('table') : []);
+            
+            for (const table of allTablesInRange) {
+                if (range.intersectsNode(table)) {
+                    // 检查表格的caption是否在选中范围内
+                    const caption = table.querySelector('caption');
+                    if (caption && !range.intersectsNode(caption)) {
+                        console.log('📋 调整选中范围以包含表格标题');
+                        adjustedRange.setStartBefore(table);
+                        if (range.endContainer === table || table.contains(range.endContainer)) {
+                            adjustedRange.setEndAfter(table);
+                        }
+                        needsAdjustment = true;
+                    }
+                }
+            }
+        }
+        
+        // 使用调整后的范围
+        const finalFragment = adjustedRange.cloneContents();
+        const images = finalFragment.querySelectorAll('img');
         
         if (images.length === 0) {
             console.log('📋 无图片内容，使用默认复制行为');
@@ -80,9 +114,11 @@ document.addEventListener('copy', async (e) => {
         e.preventDefault();
 
         // 获取完整的HTML内容，保持所有格式和样式
-        const originalRange = selection.getRangeAt(0);
+        const originalRange = needsAdjustment ? adjustedRange : selection.getRangeAt(0);
         let fullHtml = '';
         let plainText = '';
+        
+        console.log('📋 使用', needsAdjustment ? '调整后的' : '原始的', '选中范围进行复制');
         
         // 方法1：使用 Range.toString() 和更精确的HTML提取
         try {
@@ -94,6 +130,165 @@ document.addEventListener('copy', async (e) => {
                 // 克隆选中的内容，包括所有子节点
                 const clonedContents = originalRange.cloneContents();
                 tempContainer.appendChild(clonedContents);
+                
+                // 特殊处理：将表格标题转换为表格上方的独立文字
+                console.log('🔍 开始处理表格标题转换...');
+                
+                // 获取选中范围内的所有表格
+                const tables = tempContainer.querySelectorAll('table');
+                console.log('找到', tables.length, '个表格');
+                
+                // 获取原始选中范围，检查是否包含完整的表格
+                const startContainer = originalRange.startContainer;
+                const endContainer = originalRange.endContainer;
+                const commonAncestor = originalRange.commonAncestorContainer;
+                
+                // 查找选中范围内或相关的所有表格
+                let relevantTables = [];
+                if (commonAncestor.nodeType === Node.ELEMENT_NODE) {
+                    relevantTables = Array.from(commonAncestor.querySelectorAll('table'));
+                } else if (commonAncestor.parentElement) {
+                    relevantTables = Array.from(commonAncestor.parentElement.querySelectorAll('table'));
+                }
+                
+                console.log('相关表格数量:', relevantTables.length);
+                
+                tables.forEach((clonedTable, index) => {
+                    try {
+                        console.log(`处理表格 ${index + 1}...`);
+                        
+                        // 更精确的表格匹配方法
+                        let originalTable = null;
+                        
+                        // 方法1：在相关表格中查找匹配的表格
+                        const clonedFirstCell = clonedTable.querySelector('td, th');
+                        const clonedFirstCellText = clonedFirstCell ? clonedFirstCell.textContent.trim() : '';
+                        
+                        for (const table of relevantTables) {
+                            const originalFirstCell = table.querySelector('td, th');
+                            const originalFirstCellText = originalFirstCell ? originalFirstCell.textContent.trim() : '';
+                            
+                            if (clonedFirstCellText && originalFirstCellText && 
+                                clonedFirstCellText === originalFirstCellText) {
+                                originalTable = table;
+                                console.log('✅ 通过首个单元格内容匹配到表格');
+                                break;
+                            }
+                        }
+                        
+                        // 方法2：如果没有匹配成功，尝试通过表格结构匹配
+                        if (!originalTable && relevantTables[index]) {
+                            originalTable = relevantTables[index];
+                            console.log('✅ 通过索引匹配到表格');
+                        }
+                        
+                        // 方法3：如果还是没有匹配，尝试通过位置匹配
+                        if (!originalTable) {
+                            for (const table of relevantTables) {
+                                if (originalRange.intersectsNode(table)) {
+                                    originalTable = table;
+                                    console.log('✅ 通过范围交集匹配到表格');
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (originalTable) {
+                            const originalCaption = originalTable.querySelector('caption');
+                            const clonedCaption = clonedTable.querySelector('caption');
+                            
+                            console.log('原始表格有标题:', !!originalCaption);
+                            console.log('克隆表格有标题:', !!clonedCaption);
+                            
+                            // 处理表格标题：将caption转换为表格上方的独立文字
+                            let captionElement = clonedCaption || originalCaption;
+                            
+                            if (captionElement) {
+                                console.log('📝 将caption转换为独立文字元素');
+                                
+                                // 创建一个div元素来替代caption
+                                const captionDiv = document.createElement('div');
+                                
+                                // 复制caption的所有内容和属性
+                                captionDiv.innerHTML = captionElement.innerHTML;
+                                captionDiv.textContent = captionElement.textContent;
+                                
+                                // 获取并应用caption的计算样式
+                                if (originalCaption) {
+                                    const computedStyle = window.getComputedStyle(originalCaption);
+                                    
+                                    // 重要的样式属性
+                                    const captionStyles = [
+                                        'color', 'background-color', 'background', 'font-size', 'font-weight', 
+                                        'font-family', 'font-style', 'text-decoration', 'text-align', 
+                                        'line-height', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 
+                                        'margin-left', 'padding', 'padding-top', 'padding-right', 'padding-bottom', 
+                                        'padding-left', 'border', 'border-color', 'border-style', 'border-width',
+                                        'border-radius', 'display', 'width', 'max-width', 'text-transform', 
+                                        'letter-spacing', 'word-spacing', 'white-space', 'opacity', 
+                                        'box-shadow', 'text-shadow'
+                                    ];
+                                    
+                                    let styleString = '';
+                                    captionStyles.forEach(property => {
+                                        const value = computedStyle.getPropertyValue(property);
+                                        if (value && 
+                                            value !== 'initial' && 
+                                            value !== 'normal' && 
+                                            value !== 'none' && 
+                                            value !== 'auto' &&
+                                            value !== 'rgba(0, 0, 0, 0)' &&
+                                            value !== 'transparent') {
+                                            
+                                            // 特殊处理一些默认值
+                                            if (property === 'color' && (value === 'rgb(0, 0, 0)' || value === '#000000')) {
+                                                return; // 跳过默认黑色
+                                            }
+                                            if (property === 'font-size' && value === '16px') {
+                                                return; // 跳过默认字体大小
+                                            }
+                                            if (property === 'display' && value === 'table-caption') {
+                                                styleString += 'display: block; '; // 改为block显示
+                                                return;
+                                            }
+                                            
+                                            styleString += `${property}: ${value}; `;
+                                        }
+                                    });
+                                    
+                                    // 确保为块级元素
+                                    if (!styleString.includes('display:')) {
+                                        styleString += 'display: block; ';
+                                    }
+                                    
+                                    // 添加适当的边距
+                                    if (!styleString.includes('margin-bottom:') && !styleString.includes('margin:')) {
+                                        styleString += 'margin-bottom: 10px; ';
+                                    }
+                                    
+                                    if (styleString.trim()) {
+                                        captionDiv.setAttribute('style', styleString.trim());
+                                        console.log('✅ 应用了标题样式:', styleString.substring(0, 100) + '...');
+                                    }
+                                }
+                                
+                                // 在表格前插入标题div
+                                clonedTable.parentNode.insertBefore(captionDiv, clonedTable);
+                                console.log('✅ 在表格前插入了标题文字:', captionElement.textContent);
+                                
+                                // 移除原来的caption元素
+                                if (clonedCaption) {
+                                    clonedCaption.remove();
+                                    console.log('✅ 移除了原始caption元素');
+                                }
+                            }
+                        } else {
+                            console.warn('❌ 未找到匹配的原始表格');
+                        }
+                    } catch (tableError) {
+                        console.warn('表格处理失败:', tableError);
+                    }
+                });
                 
                 // 遍历所有元素，确保样式被保留
                 const allElements = tempContainer.querySelectorAll('*');
@@ -129,7 +324,8 @@ document.addEventListener('copy', async (e) => {
                                 'padding-left', 'border', 'border-color', 'border-style', 'border-width',
                                 'border-radius', 'display', 'width', 'height', 'max-width', 'max-height',
                                 'min-width', 'min-height', 'vertical-align', 'text-transform', 'letter-spacing',
-                                'word-spacing', 'white-space', 'opacity', 'box-shadow', 'text-shadow'
+                                'word-spacing', 'white-space', 'opacity', 'box-shadow', 'text-shadow',
+                                'caption-side' // 添加表格标题专用样式
                             ];
                             
                             let styleString = element.getAttribute('style') || '';
@@ -169,7 +365,7 @@ document.addEventListener('copy', async (e) => {
                 fullHtml = tempContainer.innerHTML;
                 plainText = tempContainer.textContent || tempContainer.innerText || '';
                 
-                console.log('✅ 使用增强样式保持方法');
+                console.log('✅ 使用增强样式保持方法（包含表格标题处理）');
             } else {
                 throw new Error('无法获取选中区域信息');
             }
