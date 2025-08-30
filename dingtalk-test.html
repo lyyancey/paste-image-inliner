@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>钉钉环境图片复制测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .source-content {
+            border: 2px solid #0089ff;
+            background: #f0f8ff;
+        }
+        .target-area {
+            border: 2px dashed #52c41a;
+            background: #f6ffed;
+            min-height: 200px;
+        }
+        .status-panel {
+            background: #fff7e6;
+            border: 1px solid #ffd666;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .editor {
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            padding: 12px;
+            min-height: 150px;
+            background: white;
+            outline: none;
+        }
+        .editor:focus {
+            border-color: #0089ff;
+            box-shadow: 0 0 0 2px rgba(0, 137, 255, 0.2);
+        }
+        .instructions {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .test-content h3 {
+            color: #0089ff;
+            margin-top: 0;
+        }
+        .test-content img {
+            max-width: 120px;
+            margin: 8px;
+            border: 2px solid #1890ff;
+            border-radius: 6px;
+            vertical-align: middle;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .success { color: #52c41a; font-weight: bold; }
+        .error { color: #ff4d4f; font-weight: bold; }
+        .warning { color: #fa8c16; font-weight: bold; }
+        .info { color: #1890ff; font-weight: bold; }
+        
+        .btn {
+            background: #0089ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0077e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="instructions">
+        <h1>🚀 钉钉环境图片内联转换测试</h1>
+        <p><strong>注意：</strong>控制台中的钉钉环境检测错误是正常现象，不影响插件功能。</p>
+        <ol>
+            <li>确保插件已重新安装（权限更新）</li>
+            <li>选择下方蓝色区域的全部内容</li>
+            <li>按 Ctrl+C 复制</li>
+            <li>观察状态面板中的处理过程</li>
+            <li>在绿色区域粘贴并验证效果</li>
+        </ol>
+    </div>
+
+    <div class="card source-content">
+        <div class="test-content" id="sourceContent">
+            <h3>📋 复制源内容区域</h3>
+            <p>这是一段包含<span class="highlight">格式化文字</span>和图片的测试内容。</p>
+            <p>
+                第一张图片：<img src="https://via.placeholder.com/100x80/ff6b6b/ffffff?text=RED" alt="红色图片">
+                这是图片后的文字内容。
+            </p>
+            <p>
+                <strong style="color: #722ed1;">紫色粗体文字</strong>和
+                <em style="background-color: #fff3cd; padding: 2px;">黄色背景斜体</em>的组合。
+            </p>
+            <p>
+                第二张图片：<img src="https://via.placeholder.com/100x80/4ecdc4/ffffff?text=BLUE" alt="蓝色图片">
+                继续更多文字内容。
+            </p>
+            <ul style="background-color: #f0f8ff; padding: 10px; border-radius: 4px;">
+                <li>列表项目 1</li>
+                <li>包含图片的列表项：<img src="https://via.placeholder.com/60x60/45b7d1/ffffff?text=LIST" alt="列表图片"> 项目内容</li>
+                <li>列表项目 3</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card target-area">
+        <h3>📝 粘贴目标区域</h3>
+        <div class="editor" contenteditable="true" placeholder="在这里粘贴内容，验证格式和图片是否正确...">
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>📊 状态监控面板</h3>
+        <div>
+            <button class="btn" onclick="clearStatus()">清空日志</button>
+            <button class="btn" onclick="checkClipboard()">检查剪贴板</button>
+            <button class="btn" onclick="testSelection()">测试选区</button>
+        </div>
+        <div class="status-panel" id="statusPanel">
+            <div class="info">[系统] 页面已加载，等待操作...</div>
+        </div>
+    </div>
+
+    <script>
+        const statusPanel = document.getElementById('statusPanel');
+        let operationCount = 0;
+
+        function addStatus(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${timestamp}] ${message}`;
+            statusPanel.appendChild(div);
+            statusPanel.scrollTop = statusPanel.scrollHeight;
+        }
+
+        function clearStatus() {
+            statusPanel.innerHTML = '<div class="info">[系统] 日志已清空</div>';
+        }
+
+        function checkClipboard() {
+            navigator.clipboard.read().then(items => {
+                addStatus('剪贴板检查开始...', 'info');
+                items.forEach((item, index) => {
+                    addStatus(`项目 ${index + 1} 类型: ${item.types.join(', ')}`, 'info');
+                    
+                    if (item.types.includes('text/html')) {
+                        item.getType('text/html').then(blob => blob.text()).then(html => {
+                            const dataUrlCount = (html.match(/src="data:image/g) || []).length;
+                            const httpUrlCount = (html.match(/src="http/g) || []).length;
+                            addStatus(`HTML内容: ${dataUrlCount} 个data URL, ${httpUrlCount} 个HTTP URL`, 
+                                     dataUrlCount > 0 ? 'success' : (httpUrlCount > 0 ? 'warning' : 'info'));
+                        });
+                    }
+                });
+            }).catch(e => {
+                addStatus(`剪贴板读取失败: ${e.message}`, 'error');
+            });
+        }
+
+        function testSelection() {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const fragment = range.cloneContents();
+                const images = fragment.querySelectorAll('img');
+                addStatus(`当前选区包含 ${images.length} 张图片`, images.length > 0 ? 'success' : 'info');
+                
+                if (images.length > 0) {
+                    images.forEach((img, index) => {
+                        const src = img.src || img.getAttribute('data-src');
+                        addStatus(`图片 ${index + 1}: ${src ? src.substring(0, 60) + '...' : '无URL'}`, 'info');
+                    });
+                }
+            } else {
+                addStatus('当前无选中内容', 'warning');
+            }
+        }
+
+        // 监听键盘事件
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                operationCount++;
+                addStatus(`复制操作 #${operationCount} 开始`, 'info');
+                
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const selectedText = selection.toString();
+                    addStatus(`选中文字长度: ${selectedText.length} 字符`, 'info');
+                    
+                    const range = selection.getRangeAt(0);
+                    const fragment = range.cloneContents();
+                    const images = fragment.querySelectorAll('img');
+                    
+                    if (images.length > 0) {
+                        addStatus(`发现 ${images.length} 张图片，等待插件处理...`, 'warning');
+                    } else {
+                        addStatus('无图片内容，跳过处理', 'info');
+                    }
+                }
+            }
+        });
+
+        // 监听复制事件
+        document.addEventListener('copy', (e) => {
+            addStatus('浏览器复制事件触发', 'info');
+        });
+
+        // 监听粘贴事件
+        document.addEventListener('paste', (e) => {
+            addStatus('粘贴事件触发', 'info');
+            
+            const htmlData = e.clipboardData?.getData('text/html');
+            const textData = e.clipboardData?.getData('text/plain');
+            
+            if (htmlData) {
+                const dataUrlCount = (htmlData.match(/src="data:image/g) || []).length;
+                const httpUrlCount = (htmlData.match(/src="http/g) || []).length;
+                
+                addStatus(`HTML长度: ${htmlData.length} 字符`, 'info');
+                addStatus(`图片统计: ${dataUrlCount} 个data URL, ${httpUrlCount} 个HTTP URL`, 
+                         dataUrlCount > 0 ? 'success' : (httpUrlCount > 0 ? 'error' : 'info'));
+                
+                // 检查格式保持
+                const hasFormatting = htmlData.includes('highlight') || htmlData.includes('color') || htmlData.includes('background');
+                addStatus(`格式保持: ${hasFormatting ? '✅ 已保留' : '❌ 可能丢失'}`, hasFormatting ? 'success' : 'error');
+                
+                if (dataUrlCount > 0) {
+                    addStatus('🎉 图片内联转换成功！', 'success');
+                } else if (httpUrlCount > 0) {
+                    addStatus('⚠️ 图片仍为外链，转换可能失败', 'error');
+                }
+            }
+            
+            if (textData) {
+                addStatus(`纯文本长度: ${textData.length} 字符`, 'info');
+            }
+        });
+
+        // 监听自定义事件（钉钉环境备用方案）
+        document.addEventListener('pasteImageInliner', (e) => {
+            const detail = e.detail;
+            addStatus(`收到插件自定义事件: 原始${detail.originalImages}张, 转换${detail.convertedImages}张`, 'success');
+            addStatus(`备用方案HTML长度: ${detail.html.length}`, 'info');
+        });
+
+        // 模拟钉钉环境检测
+        if (window.location.href.includes('test') || document.title.includes('钉钉')) {
+            addStatus('检测到类钉钉环境，插件已激活', 'success');
+        }
+
+        // 页面加载完成
+        addStatus('测试页面已加载完成，可以开始测试', 'success');
+    </script>
+</body>
+</html>

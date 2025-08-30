@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>复制功能快速诊断</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-content {
+            border: 2px solid #1890ff;
+            background: #e6f7ff;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .result-area {
+            border: 2px dashed #52c41a;
+            background: #f6ffed;
+            padding: 15px;
+            min-height: 100px;
+            border-radius: 4px;
+        }
+        .log-area {
+            background: #1f1f1f;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover { background: #40a9ff; }
+        .btn.danger { background: #ff4d4f; }
+        .status-good { color: #52c41a; font-weight: bold; }
+        .status-bad { color: #ff4d4f; font-weight: bold; }
+        .status-warn { color: #fa8c16; font-weight: bold; }
+        img { max-width: 80px; margin: 5px; border: 1px solid #d9d9d9; }
+    </style>
+</head>
+<body>
+    <h1>🔧 复制功能快速诊断</h1>
+
+    <div class="card">
+        <h3>📋 第一步：测试基本复制</h3>
+        <div class="test-content" id="basicTest">
+            <p><strong>这是纯文本内容，不包含图片</strong></p>
+            <p>请选择这段文字，然后按 Ctrl+C 复制</p>
+        </div>
+        <p>状态：<span id="basicStatus">等待测试...</span></p>
+    </div>
+
+    <div class="card">
+        <h3>🖼️ 第二步：测试图片复制</h3>
+        <div class="test-content" id="imageTest">
+            <p>这段内容包含图片：</p>
+            <img src="https://via.placeholder.com/80x60/ff6b6b/ffffff?text=Test1" alt="测试图片1">
+            <img src="https://via.placeholder.com/80x60/4ecdc4/ffffff?text=Test2" alt="测试图片2">
+            <p>请选择<strong>全部内容</strong>，然后按 Ctrl+C 复制</p>
+        </div>
+        <p>状态：<span id="imageStatus">等待测试...</span></p>
+    </div>
+
+    <div class="card">
+        <h3>📝 第三步：粘贴测试</h3>
+        <p>在下方区域按 Ctrl+V 粘贴刚才复制的内容：</p>
+        <div class="result-area" contenteditable="true" id="pasteArea">
+            点击这里，然后按 Ctrl+V 粘贴...
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>📊 插件状态</h3>
+        <div id="pluginStatus">检查中...</div>
+        <button class="btn" onclick="checkPlugin()">重新检查插件</button>
+        <button class="btn" onclick="testInlineFunction()">测试内联函数</button>
+        <button class="btn danger" onclick="refreshPage()">刷新页面</button>
+    </div>
+
+    <div class="card">
+        <h3>📜 操作日志</h3>
+        <div class="log-area" id="logArea"></div>
+        <button class="btn" onclick="clearLog()">清空日志</button>
+    </div>
+
+    <script>
+        const logArea = document.getElementById('logArea');
+        let copyEvents = 0;
+        let pasteEvents = 0;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                info: '#79c0ff',
+                success: '#3fb950', 
+                warning: '#f2cc60',
+                error: '#f85149'
+            };
+            const div = document.createElement('div');
+            div.style.color = colors[type] || colors.info;
+            div.textContent = `[${timestamp}] ${message}`;
+            logArea.appendChild(div);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function clearLog() {
+            logArea.innerHTML = '';
+            log('日志已清空');
+        }
+
+        function updateStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status-${type}`;
+        }
+
+        // 监听复制事件
+        document.addEventListener('copy', (e) => {
+            copyEvents++;
+            log(`复制事件 #${copyEvents} 触发`);
+            
+            const selection = window.getSelection();
+            const selectedText = selection.toString();
+            log(`选中内容长度: ${selectedText.length} 字符`);
+            
+            // 检查选中的内容
+            if (selectedText.includes('纯文本内容')) {
+                updateStatus('basicStatus', '✅ 基本复制正常', 'good');
+                log('基本复制测试通过', 'success');
+            } else if (selectedText.includes('这段内容包含图片')) {
+                log('检测到包含图片的复制操作', 'info');
+                // 延迟检查结果
+                setTimeout(() => {
+                    checkImageCopy();
+                }, 1000);
+            }
+        });
+
+        // 监听粘贴事件
+        document.addEventListener('paste', (e) => {
+            pasteEvents++;
+            log(`粘贴事件 #${pasteEvents} 触发`);
+            
+            const htmlData = e.clipboardData?.getData('text/html');
+            const textData = e.clipboardData?.getData('text/plain');
+            
+            if (htmlData) {
+                const dataUrlCount = (htmlData.match(/src="data:image/g) || []).length;
+                const httpUrlCount = (htmlData.match(/src="http/g) || []).length;
+                
+                log(`HTML内容长度: ${htmlData.length}`);
+                log(`Data URL图片: ${dataUrlCount} 个`);
+                log(`HTTP URL图片: ${httpUrlCount} 个`);
+                
+                if (dataUrlCount > 0) {
+                    updateStatus('imageStatus', '✅ 图片转换成功', 'good');
+                    log('图片内联转换成功！', 'success');
+                } else if (httpUrlCount > 0) {
+                    updateStatus('imageStatus', '⚠️ 图片未转换', 'warn');
+                    log('图片仍为外链，转换失败', 'warning');
+                } else if (htmlData.length > 0) {
+                    log('粘贴的是文本内容', 'info');
+                }
+            }
+            
+            if (textData) {
+                log(`纯文本长度: ${textData.length} 字符`);
+            }
+        });
+
+        async function checkImageCopy() {
+            try {
+                const clipboardItems = await navigator.clipboard.read();
+                for (const item of clipboardItems) {
+                    if (item.types.includes('text/html')) {
+                        const htmlBlob = await item.getType('text/html');
+                        const html = await htmlBlob.text();
+                        const dataUrlCount = (html.match(/src="data:image/g) || []).length;
+                        const httpUrlCount = (html.match(/src="http/g) || []).length;
+                        
+                        if (dataUrlCount > 0) {
+                            updateStatus('imageStatus', '✅ 图片转换成功', 'good');
+                            log(`剪贴板中发现 ${dataUrlCount} 个内联图片`, 'success');
+                        } else if (httpUrlCount > 0) {
+                            updateStatus('imageStatus', '⚠️ 图片未转换', 'warn');
+                            log(`剪贴板中仍有 ${httpUrlCount} 个外链图片`, 'warning');
+                        }
+                        break;
+                    }
+                }
+            } catch (e) {
+                log(`剪贴板检查失败: ${e.message}`, 'error');
+            }
+        }
+
+        async function checkPlugin() {
+            log('检查插件状态...');
+            
+            try {
+                if (typeof chrome === 'undefined' || !chrome.runtime) {
+                    throw new Error('Chrome扩展API不可用');
+                }
+                
+                const response = await chrome.runtime.sendMessage({ type: 'PING' });
+                if (response && response.pong) {
+                    document.getElementById('pluginStatus').innerHTML = 
+                        '<span class="status-good">✅ 插件连接正常</span>';
+                    log('插件通信测试成功', 'success');
+                } else {
+                    throw new Error('插件响应异常');
+                }
+            } catch (error) {
+                document.getElementById('pluginStatus').innerHTML = 
+                    `<span class="status-bad">❌ 插件错误: ${error.message}</span>`;
+                log(`插件检查失败: ${error.message}`, 'error');
+                
+                if (error.message.includes('Extension context invalidated')) {
+                    log('需要刷新页面来恢复插件功能', 'warning');
+                }
+            }
+        }
+
+        function testInlineFunction() {
+            if (typeof window.testImageInliner === 'function') {
+                window.testImageInliner();
+                log('已调用插件测试函数', 'info');
+            } else {
+                log('插件测试函数不可用', 'error');
+            }
+        }
+
+        function refreshPage() {
+            window.location.reload();
+        }
+
+        // 页面加载时自动检查
+        window.addEventListener('load', () => {
+            log('诊断页面已加载');
+            checkPlugin();
+        });
+
+        log('诊断工具已启动，请按照步骤进行测试');
+    </script>
+</body>
+</html>

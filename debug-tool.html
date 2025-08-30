@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片转换调试工具</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .container {
+            background: #2d2d30;
+            border: 1px solid #3e3e42;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .source-area {
+            background: #0e2f44;
+            border: 2px solid #1ba1e2;
+        }
+        .debug-panel {
+            background: #2d2d30;
+            border: 1px solid #608b4e;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .test-content {
+            background: white;
+            color: black;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .btn {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .btn:hover { background: #1177bb; }
+        .btn.danger { background: #c5282f; }
+        .btn.danger:hover { background: #d73a42; }
+        .btn.success { background: #16825d; }
+        .btn.success:hover { background: #1a9d71; }
+        
+        .log-error { color: #f85149; }
+        .log-warn { color: #f2cc60; }
+        .log-info { color: #79c0ff; }
+        .log-success { color: #3fb950; }
+        
+        h1, h2, h3 { color: #79c0ff; }
+        
+        .test-content img {
+            max-width: 100px;
+            margin: 5px;
+            border: 2px solid #007acc;
+        }
+        
+        .status-item {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 图片内联转换调试工具</h1>
+    
+    <div class="container">
+        <h3>📋 控制面板</h3>
+        <button class="btn" onclick="testImageFetch()">测试图片获取</button>
+        <button class="btn" onclick="testClipboardRead()">测试剪贴板读取</button>
+        <button class="btn" onclick="testClipboardWrite()">测试剪贴板写入</button>
+        <button class="btn success" onclick="runFullTest()">完整测试流程</button>
+        <button class="btn danger" onclick="clearLog()">清空日志</button>
+    </div>
+
+    <div class="container source-area">
+        <h3>📝 测试内容区域</h3>
+        <div class="test-content" id="testContent">
+            <h4>测试标题</h4>
+            <p>这是包含<strong style="color: red;">格式</strong>的文字</p>
+            <p>图片1：<img src="https://via.placeholder.com/80x60/ff0000/ffffff?text=Test1" alt="测试图片1"></p>
+            <p>图片2：<img src="https://via.placeholder.com/80x60/00ff00/ffffff?text=Test2" alt="测试图片2"></p>
+            <p>图片3：<img src="https://httpbin.org/image/png" alt="PNG图片"></p>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>📊 调试日志</h3>
+        <div class="debug-panel" id="debugLog"></div>
+    </div>
+
+    <div class="container">
+        <h3>📋 剪贴板状态</h3>
+        <div id="clipboardStatus">
+            <div class="status-item">等待检测...</div>
+        </div>
+    </div>
+
+    <script>
+        const debugLog = document.getElementById('debugLog');
+        const clipboardStatus = document.getElementById('clipboardStatus');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}\n`;
+            debugLog.textContent += logEntry;
+            debugLog.scrollTop = debugLog.scrollHeight;
+            
+            // 也输出到控制台
+            console.log(`%c${logEntry}`, `color: ${getLogColor(type)}`);
+        }
+        
+        function getLogColor(type) {
+            switch(type) {
+                case 'error': return '#f85149';
+                case 'warn': return '#f2cc60';
+                case 'success': return '#3fb950';
+                default: return '#79c0ff';
+            }
+        }
+        
+        function clearLog() {
+            debugLog.textContent = '';
+            log('日志已清空');
+        }
+        
+        async function testImageFetch() {
+            log('🖼️ 开始测试图片获取...', 'info');
+            
+            const testUrls = [
+                'https://via.placeholder.com/80x60/ff0000/ffffff?text=Test1',
+                'https://via.placeholder.com/80x60/00ff00/ffffff?text=Test2',
+                'https://httpbin.org/image/png'
+            ];
+            
+            try {
+                log('📡 向background script发送请求...', 'info');
+                const response = await chrome.runtime.sendMessage({
+                    type: 'FETCH_IMAGE_TO_DATAURL',
+                    urls: testUrls
+                });
+                
+                log('📡 收到响应:', 'info');
+                log(JSON.stringify(response, null, 2), 'info');
+                
+                if (response && response.results) {
+                    let successCount = 0;
+                    for (const [url, result] of Object.entries(response.results)) {
+                        if (result.ok) {
+                            successCount++;
+                            log(`✅ 成功: ${url} -> data URL (${result.originalSize} bytes)`, 'success');
+                        } else {
+                            log(`❌ 失败: ${url} -> ${result.error}`, 'error');
+                        }
+                    }
+                    log(`📊 总结: ${successCount}/${testUrls.length} 张图片转换成功`, successCount === testUrls.length ? 'success' : 'warn');
+                } else {
+                    log('❌ 未收到有效响应', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ 图片获取测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testClipboardRead() {
+            log('📋 开始测试剪贴板读取...', 'info');
+            
+            try {
+                const items = await navigator.clipboard.read();
+                log(`📋 剪贴板中有 ${items.length} 个项目`, 'info');
+                
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    log(`项目 ${i + 1} 类型: ${item.types.join(', ')}`, 'info');
+                    
+                    if (item.types.includes('text/html')) {
+                        const htmlBlob = await item.getType('text/html');
+                        const html = await htmlBlob.text();
+                        log(`HTML内容长度: ${html.length} 字符`, 'info');
+                        log(`HTML预览: ${html.substring(0, 200)}...`, 'info');
+                        
+                        const imgCount = (html.match(/<img/g) || []).length;
+                        const dataUrlCount = (html.match(/src="data:image/g) || []).length;
+                        log(`包含图片: ${imgCount} 个, data URL: ${dataUrlCount} 个`, 'info');
+                    }
+                    
+                    if (item.types.includes('text/plain')) {
+                        const textBlob = await item.getType('text/plain');
+                        const text = await textBlob.text();
+                        log(`纯文本长度: ${text.length} 字符`, 'info');
+                    }
+                }
+                
+                log('✅ 剪贴板读取测试完成', 'success');
+                
+            } catch (error) {
+                log(`❌ 剪贴板读取失败: ${error.message}`, 'error');
+                log('💡 提示: 可能需要先复制一些内容', 'warn');
+            }
+        }
+        
+        async function testClipboardWrite() {
+            log('✍️ 开始测试剪贴板写入...', 'info');
+            
+            const testHtml = `<p>测试HTML内容</p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" alt="测试">`;
+            const testText = '测试文本内容';
+            
+            try {
+                await navigator.clipboard.write([
+                    new ClipboardItem({
+                        'text/html': new Blob([testHtml], { type: 'text/html' }),
+                        'text/plain': new Blob([testText], { type: 'text/plain' })
+                    })
+                ]);
+                
+                log('✅ 剪贴板写入成功', 'success');
+                log('💡 请在其他地方粘贴以验证内容', 'info');
+                
+            } catch (error) {
+                log(`❌ 剪贴板写入失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function runFullTest() {
+            log('🚀 开始完整测试流程...', 'info');
+            log('=' * 50, 'info');
+            
+            // 1. 选择测试内容
+            const testContent = document.getElementById('testContent');
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(testContent);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            log('1️⃣ 已选择测试内容', 'info');
+            
+            // 2. 模拟复制操作
+            try {
+                const fragment = range.cloneContents();
+                const images = fragment.querySelectorAll('img');
+                log(`2️⃣ 发现 ${images.length} 张图片`, 'info');
+                
+                const imageUrls = Array.from(images)
+                    .map(img => img.src)
+                    .filter(src => src && !src.startsWith('data:'));
+                
+                log(`3️⃣ 需要转换的图片URL: ${imageUrls.length} 个`, 'info');
+                imageUrls.forEach(url => log(`   - ${url}`, 'info'));
+                
+                // 3. 测试图片转换
+                const response = await chrome.runtime.sendMessage({
+                    type: 'FETCH_IMAGE_TO_DATAURL',
+                    urls: imageUrls
+                });
+                
+                if (response && response.results) {
+                    let successCount = 0;
+                    const container = document.createElement('div');
+                    container.appendChild(fragment);
+                    
+                    // 替换图片URL
+                    const containerImages = container.querySelectorAll('img');
+                    containerImages.forEach(img => {
+                        const result = response.results[img.src];
+                        if (result && result.ok) {
+                            img.src = result.dataUrl;
+                            successCount++;
+                        }
+                    });
+                    
+                    log(`4️⃣ 图片转换结果: ${successCount}/${imageUrls.length}`, successCount === imageUrls.length ? 'success' : 'warn');
+                    
+                    // 4. 测试剪贴板写入
+                    const modifiedHtml = container.innerHTML;
+                    const textContent = container.textContent;
+                    
+                    await navigator.clipboard.write([
+                        new ClipboardItem({
+                            'text/html': new Blob([modifiedHtml], { type: 'text/html' }),
+                            'text/plain': new Blob([textContent], { type: 'text/plain' })
+                        })
+                    ]);
+                    
+                    log('5️⃣ 剪贴板写入完成', 'success');
+                    log('🎉 完整测试流程完成！', 'success');
+                    
+                    // 更新剪贴板状态显示
+                    updateClipboardStatus(modifiedHtml, textContent);
+                    
+                } else {
+                    log('❌ 图片转换响应无效', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ 完整测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        function updateClipboardStatus(html, text) {
+            const dataUrlCount = (html.match(/src="data:image/g) || []).length;
+            const httpUrlCount = (html.match(/src="http/g) || []).length;
+            
+            clipboardStatus.innerHTML = `
+                <div class="status-item">
+                    <strong>HTML长度:</strong> ${html.length} 字符<br>
+                    <strong>纯文本长度:</strong> ${text.length} 字符<br>
+                    <strong>Data URL图片:</strong> ${dataUrlCount} 个<br>
+                    <strong>HTTP URL图片:</strong> ${httpUrlCount} 个<br>
+                    <strong>状态:</strong> ${dataUrlCount > 0 ? '✅ 包含内联图片' : (httpUrlCount > 0 ? '⚠️ 仍有外链图片' : '🔍 无图片')}
+                </div>
+            `;
+        }
+        
+        // 页面加载完成
+        log('🔧 调试工具已加载完成', 'success');
+        log('💡 提示: 请确保Chrome插件已安装并启用', 'info');
+        
+        // 检查插件是否可用
+        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+            log('✅ Chrome扩展API可用', 'success');
+        } else {
+            log('❌ Chrome扩展API不可用，请检查插件安装', 'error');
+        }
+    </script>
+</body>
+</html>
