@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>空行清理功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .test-content {
+            border: 2px dashed #007acc;
+            padding: 20px;
+            margin: 15px 0;
+            background-color: #f8f9fa;
+            user-select: text;
+            cursor: text;
+        }
+        
+        .test-content h1 {
+            color: #e74c3c;
+            margin: 50px 0 40px 0;
+        }
+        
+        .test-content h2 {
+            color: #3498db;
+            margin: 40px 0 30px 0;
+        }
+        
+        .test-content p {
+            margin: 30px 0;
+        }
+        
+        .test-content .empty-para {
+            height: 30px;
+            background-color: #ffebee;
+        }
+        
+        .test-content .empty-div {
+            height: 25px;
+            background-color: #e3f2fd;
+        }
+        
+        .info-panel {
+            background: #e8f4fd;
+            border-left: 4px solid #007acc;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .config-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .config-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background: #007acc;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .analysis-result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧹 空行清理功能测试</h1>
+        
+        <div class="info-panel">
+            <strong>功能说明：</strong><br>
+            这个页面用于测试空行清理功能。当你复制下面的测试内容时，插件会自动：
+            <ul>
+                <li>🗑️ 移除空的段落和div元素</li>
+                <li>📏 减少多余的换行符</li>
+                <li>📐 紧凑过大的间距</li>
+                <li>✨ 让内容变得更紧凑</li>
+            </ul>
+        </div>
+        
+        <div class="config-buttons">
+            <button class="btn-primary" onclick="openConfig()">⚙️ 打开配置界面</button>
+            <button class="btn-secondary" onclick="testFunction()">🧪 测试功能</button>
+            <button class="btn-success" onclick="analyzeClipboard()">📋 分析剪贴板</button>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>📝 测试内容（选择并复制）</h2>
+        
+        <div class="test-content" id="testContent">
+            <h1>这是一个大标题</h1>
+            
+            <p></p>
+            <p></p>
+            <p></p>
+            
+            <div></div>
+            <div></div>
+            
+            <p>这是第一段文字，前面有很多空行。</p>
+            
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            
+            <h2>这是二级标题</h2>
+            
+            <p></p>
+            
+            <p>这是第二段文字，中间有很多换行符。</p>
+            
+            <br>
+            <br>
+            <br>
+            
+            <div style="margin-top: 60px; margin-bottom: 80px;">
+                这个div有很大的边距
+            </div>
+            
+            <p style="margin-top: 100px; margin-bottom: 120px;">
+                这个段落也有很大的边距
+            </p>
+            
+            <p></p>
+            <div></div>
+            <p></p>
+            
+            <img src="https://via.placeholder.com/100x50/ff6b6b/ffffff?text=测试图片" alt="测试图片">
+            
+            <p>最后一段文字。</p>
+            
+            <p></p>
+            <p></p>
+            <div></div>
+        </div>
+        
+        <div class="info-panel">
+            <strong>测试步骤：</strong>
+            <ol>
+                <li>选择上面蓝色框内的全部内容</li>
+                <li>按 Ctrl+C 复制</li>
+                <li>观察控制台输出的清理信息</li>
+                <li>粘贴到其他地方查看效果</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>⚙️ 配置测试</h2>
+        
+        <div class="info-panel">
+            <strong>配置选项说明：</strong>
+            <ul>
+                <li><strong>移除空段落：</strong> 删除没有内容的 &lt;p&gt; 标签</li>
+                <li><strong>移除空div：</strong> 删除没有内容的 &lt;div&gt; 标签</li>
+                <li><strong>移除多余换行符：</strong> 将连续的 &lt;br&gt; 标签减少到最多2个</li>
+                <li><strong>紧凑间距：</strong> 减少过大的margin值</li>
+            </ul>
+        </div>
+        
+        <div class="config-buttons">
+            <button class="btn-primary" onclick="enableAllCleanup()">✅ 启用全部清理</button>
+            <button class="btn-secondary" onclick="disableAllCleanup()">❌ 禁用全部清理</button>
+            <button class="btn-success" onclick="showCurrentConfig()">📊 显示当前配置</button>
+        </div>
+        
+        <div id="configDisplay" class="analysis-result" style="display: none;"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>📊 剪贴板分析</h2>
+        
+        <p>点击下面的按钮来分析剪贴板内容：</p>
+        
+        <div class="config-buttons">
+            <button class="btn-success" onclick="analyzeClipboard()">🔍 分析剪贴板内容</button>
+            <button class="btn-secondary" onclick="clearAnalysis()">🗑️ 清除分析结果</button>
+        </div>
+        
+        <div id="clipboardAnalysis" class="analysis-result" style="display: none;"></div>
+    </div>
+
+    <script>
+        // 打开配置界面
+        function openConfig() {
+            if (typeof imageInlinerConfig !== 'undefined') {
+                imageInlinerConfig.show();
+            } else {
+                alert('请先加载插件内容脚本');
+            }
+        }
+
+        // 测试功能
+        function testFunction() {
+            if (typeof testImageInliner !== 'undefined') {
+                testImageInliner();
+            } else {
+                alert('请先加载插件内容脚本');
+                console.log('请确保插件已加载，然后在控制台运行 testImageInliner()');
+            }
+        }
+
+        // 启用全部清理功能
+        function enableAllCleanup() {
+            if (typeof imageInlinerConfig !== 'undefined') {
+                imageInlinerConfig.setEmptyLineConfig({
+                    enabled: true,
+                    removeEmptyParagraphs: true,
+                    removeEmptyDivs: true,
+                    removeExcessiveLineBreaks: true,
+                    compactSpacing: true
+                });
+                console.log('✅ 已启用全部空行清理功能');
+                alert('已启用全部空行清理功能');
+            } else {
+                alert('请先加载插件内容脚本');
+            }
+        }
+
+        // 禁用全部清理功能
+        function disableAllCleanup() {
+            if (typeof imageInlinerConfig !== 'undefined') {
+                imageInlinerConfig.setEmptyLineConfig({
+                    enabled: false
+                });
+                console.log('❌ 已禁用空行清理功能');
+                alert('已禁用空行清理功能');
+            } else {
+                alert('请先加载插件内容脚本');
+            }
+        }
+
+        // 显示当前配置
+        function showCurrentConfig() {
+            if (typeof imageInlinerConfig !== 'undefined') {
+                const headingConfig = imageInlinerConfig.getHeadingConfig();
+                const emptyLineConfig = imageInlinerConfig.getEmptyLineConfig();
+                
+                const configText = `当前配置状态：
+
+【标题替换配置】
+启用状态: ${headingConfig.enabled ? '✅ 已启用' : '❌ 未启用'}
+替换规则: ${JSON.stringify(headingConfig.replacements, null, 2)}
+
+【空行清理配置】
+启用状态: ${emptyLineConfig.enabled ? '✅ 已启用' : '❌ 未启用'}
+移除空段落: ${emptyLineConfig.removeEmptyParagraphs ? '✅' : '❌'}
+移除空div: ${emptyLineConfig.removeEmptyDivs ? '✅' : '❌'}
+移除多余换行: ${emptyLineConfig.removeExcessiveLineBreaks ? '✅' : '❌'}
+紧凑间距: ${emptyLineConfig.compactSpacing ? '✅' : '❌'}`;
+
+                document.getElementById('configDisplay').style.display = 'block';
+                document.getElementById('configDisplay').textContent = configText;
+                
+                console.log('📊 当前配置:', { headingConfig, emptyLineConfig });
+            } else {
+                alert('请先加载插件内容脚本');
+            }
+        }
+
+        // 分析剪贴板内容
+        async function analyzeClipboard() {
+            try {
+                const clipboardText = await navigator.clipboard.readText();
+                
+                // 尝试读取HTML内容
+                let clipboardHTML = '';
+                try {
+                    const clipboardItems = await navigator.clipboard.read();
+                    for (const item of clipboardItems) {
+                        if (item.types.includes('text/html')) {
+                            const htmlBlob = await item.getType('text/html');
+                            clipboardHTML = await htmlBlob.text();
+                        }
+                    }
+                } catch (e) {
+                    console.log('无法读取HTML格式的剪贴板内容');
+                }
+
+                const analysis = `剪贴板内容分析：
+
+【文本内容】
+长度: ${clipboardText.length} 字符
+行数: ${clipboardText.split('\n').length} 行
+空行数: ${clipboardText.split('\n').filter(line => line.trim() === '').length} 行
+
+【HTML内容】
+${clipboardHTML ? `长度: ${clipboardHTML.length} 字符
+包含图片: ${clipboardHTML.includes('<img') ? '✅' : '❌'}
+包含表格: ${clipboardHTML.includes('<table') ? '✅' : '❌'}
+包含标题: ${(/h[1-6]/i.test(clipboardHTML)) ? '✅' : '❌'}
+包含空段落: ${clipboardHTML.includes('<p></p>') ? '✅' : '❌'}
+包含换行符: ${clipboardHTML.includes('<br') ? '✅' : '❌'}` : '无HTML内容'}
+
+【文本内容预览】
+${clipboardText.substring(0, 500)}${clipboardText.length > 500 ? '...' : ''}
+
+${clipboardHTML ? `【HTML内容预览】
+${clipboardHTML.substring(0, 500)}${clipboardHTML.length > 500 ? '...' : ''}` : ''}`;
+
+                document.getElementById('clipboardAnalysis').style.display = 'block';
+                document.getElementById('clipboardAnalysis').textContent = analysis;
+                
+                console.log('📋 剪贴板分析完成');
+            } catch (err) {
+                alert('无法访问剪贴板: ' + err.message);
+                console.error('剪贴板访问失败:', err);
+            }
+        }
+
+        // 清除分析结果
+        function clearAnalysis() {
+            document.getElementById('clipboardAnalysis').style.display = 'none';
+            document.getElementById('configDisplay').style.display = 'none';
+        }
+
+        // 页面加载完成后的初始化
+        window.addEventListener('load', function() {
+            console.log('🧹 空行清理测试页面已加载');
+            console.log('💡 使用说明：');
+            console.log('1. 选择测试内容并复制');
+            console.log('2. 查看控制台的清理日志');
+            console.log('3. 使用配置按钮测试不同设置');
+            console.log('4. 分析剪贴板查看清理效果');
+        });
+    </script>
+</body>
+</html>

@@ -11,6 +11,15 @@ let headingReplacementConfig = {
     }
 };
 
+// 空行清理配置
+let emptyLineCleanupConfig = {
+    enabled: true,
+    removeEmptyParagraphs: true,
+    removeEmptyDivs: true,
+    removeExcessiveLineBreaks: true,
+    compactSpacing: true
+};
+
 console.log('图片内联转换插件已加载');
 
 // 检测扩展上下文是否有效
@@ -43,6 +52,143 @@ function saveHeadingConfig() {
     } catch (e) {
         console.warn('保存标题配置失败:', e);
     }
+}
+
+// 加载空行清理配置
+function loadEmptyLineConfig() {
+    try {
+        const saved = localStorage.getItem('imageInliner_emptyLineConfig');
+        if (saved) {
+            emptyLineCleanupConfig = { ...emptyLineCleanupConfig, ...JSON.parse(saved) };
+            console.log('🧹 已加载空行清理配置:', emptyLineCleanupConfig);
+        }
+    } catch (e) {
+        console.warn('加载空行清理配置失败:', e);
+    }
+}
+
+// 保存空行清理配置
+function saveEmptyLineConfig() {
+    try {
+        localStorage.setItem('imageInliner_emptyLineConfig', JSON.stringify(emptyLineCleanupConfig));
+        console.log('💾 已保存空行清理配置');
+    } catch (e) {
+        console.warn('保存空行清理配置失败:', e);
+    }
+}
+
+// 应用空行清理
+function applyEmptyLineCleanup(container) {
+    if (!emptyLineCleanupConfig.enabled) {
+        console.log('🧹 空行清理功能未启用');
+        return 0;
+    }
+    
+    let cleanupCount = 0;
+    
+    // 1. 移除空的段落和div
+    if (emptyLineCleanupConfig.removeEmptyParagraphs || emptyLineCleanupConfig.removeEmptyDivs) {
+        const emptySelectors = [];
+        if (emptyLineCleanupConfig.removeEmptyParagraphs) {
+            emptySelectors.push('p');
+        }
+        if (emptyLineCleanupConfig.removeEmptyDivs) {
+            emptySelectors.push('div');
+        }
+        
+        emptySelectors.forEach(selector => {
+            const elements = container.querySelectorAll(selector);
+            elements.forEach(element => {
+                const text = element.textContent.trim();
+                const hasImages = element.querySelector('img');
+                const hasOtherContent = element.querySelector('table, ul, ol, blockquote, hr');
+                
+                // 只删除真正空的元素（没有文字、图片或其他重要内容）
+                if (!text && !hasImages && !hasOtherContent) {
+                    element.remove();
+                    cleanupCount++;
+                    console.log(`🧹 移除空的 ${selector.toUpperCase()} 元素`);
+                }
+            });
+        });
+    }
+    
+    // 2. 移除多余的换行符
+    if (emptyLineCleanupConfig.removeExcessiveLineBreaks) {
+        const brElements = container.querySelectorAll('br');
+        brElements.forEach((br, index) => {
+            const nextElement = br.nextElementSibling;
+            const nextBr = nextElement && nextElement.tagName === 'BR' ? nextElement : null;
+            
+            // 如果连续有多个<br>，只保留一个
+            if (nextBr) {
+                let consecutiveBrCount = 0;
+                let currentElement = br;
+                
+                while (currentElement && currentElement.tagName === 'BR') {
+                    consecutiveBrCount++;
+                    currentElement = currentElement.nextElementSibling;
+                }
+                
+                // 如果有超过2个连续的<br>，移除多余的
+                if (consecutiveBrCount > 2) {
+                    let removeCount = consecutiveBrCount - 2;
+                    let elementToRemove = br.nextElementSibling;
+                    
+                    while (removeCount > 0 && elementToRemove && elementToRemove.tagName === 'BR') {
+                        const nextToRemove = elementToRemove.nextElementSibling;
+                        elementToRemove.remove();
+                        elementToRemove = nextToRemove;
+                        removeCount--;
+                        cleanupCount++;
+                    }
+                    
+                    console.log(`🧹 移除了 ${consecutiveBrCount - 2} 个多余的换行符`);
+                }
+            }
+        });
+    }
+    
+    // 3. 紧凑间距（减少过大的边距）
+    if (emptyLineCleanupConfig.compactSpacing) {
+        const elementsWithMargin = container.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, ul, ol, blockquote');
+        elementsWithMargin.forEach(element => {
+            const style = element.style;
+            const computedStyle = window.getComputedStyle ? window.getComputedStyle(element) : null;
+            
+            // 检查是否有过大的边距
+            if (computedStyle) {
+                const marginTop = parseFloat(computedStyle.marginTop);
+                const marginBottom = parseFloat(computedStyle.marginBottom);
+                
+                // 如果上下边距过大（超过2em），减少到合理范围
+                if (marginTop > 32) { // 32px 约等于 2em
+                    element.style.marginTop = '1em';
+                    cleanupCount++;
+                }
+                if (marginBottom > 32) {
+                    element.style.marginBottom = '1em';
+                    cleanupCount++;
+                }
+            }
+            
+            // 直接检查内联样式
+            if (style.marginTop && parseFloat(style.marginTop) > 32) {
+                style.marginTop = '1em';
+                cleanupCount++;
+            }
+            if (style.marginBottom && parseFloat(style.marginBottom) > 32) {
+                style.marginBottom = '1em';
+                cleanupCount++;
+            }
+        });
+    }
+    
+    if (cleanupCount > 0) {
+        console.log(`✅ 完成空行清理，共处理 ${cleanupCount} 个元素`);
+    }
+    
+    return cleanupCount;
 }
 
 // 应用标题替换
@@ -120,30 +266,73 @@ function showHeadingConfigUI() {
     const configUI = document.createElement('div');
     configUI.id = 'headingConfigUI';
     configUI.innerHTML = `
-        <div style="position: fixed; top: 20px; right: 20px; background: white; border: 2px solid #1890ff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 10000; font-family: Arial, sans-serif; max-width: 350px;">
-            <h3 style="margin: 0 0 15px 0; color: #1890ff; font-size: 16px;">🔧 标题替换设置</h3>
+        <div style="position: fixed; top: 20px; right: 20px; background: white; border: 2px solid #1890ff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 10000; font-family: Arial, sans-serif; max-width: 400px; max-height: 80vh; overflow-y: auto;">
+            <h3 style="margin: 0 0 15px 0; color: #1890ff; font-size: 16px;">🔧 内容处理设置</h3>
             
-            <div style="margin-bottom: 15px;">
-                <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="checkbox" id="enableHeadingReplacement" ${headingReplacementConfig.enabled ? 'checked' : ''} style="margin-right: 8px;">
-                    <span style="font-weight: bold;">启用标题替换功能</span>
-                </label>
+            <!-- 标题替换设置 -->
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+                <h4 style="margin: 0 0 10px 0; color: #333; font-size: 14px;">📝 标题替换</h4>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="enableHeadingReplacement" ${headingReplacementConfig.enabled ? 'checked' : ''} style="margin-right: 8px;">
+                        <span style="font-weight: bold;">启用标题替换功能</span>
+                    </label>
+                </div>
+                
+                <div id="replacementRules" style="display: ${headingReplacementConfig.enabled ? 'block' : 'none'};">
+                    <div style="margin-bottom: 10px; font-weight: bold; color: #666;">替换规则：</div>
+                    ${generateReplacementInputs()}
+                </div>
             </div>
             
-            <div id="replacementRules" style="display: ${headingReplacementConfig.enabled ? 'block' : 'none'};">
-                <div style="margin-bottom: 10px; font-weight: bold; color: #666;">替换规则：</div>
-                ${generateReplacementInputs()}
+            <!-- 空行清理设置 -->
+            <div style="margin-bottom: 20px; padding: 15px; background: #f0f8ff; border-radius: 6px;">
+                <h4 style="margin: 0 0 10px 0; color: #333; font-size: 14px;">🧹 空行清理</h4>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="enableEmptyLineCleanup" ${emptyLineCleanupConfig.enabled ? 'checked' : ''} style="margin-right: 8px;">
+                        <span style="font-weight: bold;">启用空行清理功能</span>
+                    </label>
+                </div>
+                
+                <div id="cleanupOptions" style="display: ${emptyLineCleanupConfig.enabled ? 'block' : 'none'};">
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px;">
+                            <input type="checkbox" id="removeEmptyParagraphs" ${emptyLineCleanupConfig.removeEmptyParagraphs ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>移除空段落</span>
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px;">
+                            <input type="checkbox" id="removeEmptyDivs" ${emptyLineCleanupConfig.removeEmptyDivs ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>移除空的div元素</span>
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px;">
+                            <input type="checkbox" id="removeExcessiveLineBreaks" ${emptyLineCleanupConfig.removeExcessiveLineBreaks ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>移除多余换行符</span>
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px;">
+                            <input type="checkbox" id="compactSpacing" ${emptyLineCleanupConfig.compactSpacing ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>紧凑间距</span>
+                        </label>
+                    </div>
+                </div>
             </div>
             
             <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button id="saveHeadingConfig" style="background: #52c41a; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; flex: 1;">保存</button>
-                <button id="resetHeadingConfig" style="background: #fa8c16; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; flex: 1;">重置</button>
-                <button id="closeHeadingConfig" style="background: #f5f5f5; color: #333; border: 1px solid #d9d9d9; padding: 8px 16px; border-radius: 4px; cursor: pointer;">关闭</button>
+                <button id="saveAllConfig" style="background: #52c41a; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; flex: 1;">保存</button>
+                <button id="resetAllConfig" style="background: #fa8c16; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; flex: 1;">重置</button>
+                <button id="closeConfig" style="background: #f5f5f5; color: #333; border: 1px solid #d9d9d9; padding: 8px 16px; border-radius: 4px; cursor: pointer;">关闭</button>
             </div>
             
             <div style="margin-top: 10px; font-size: 12px; color: #666;">
-                <div>💡 提示：选择要替换的标题级别</div>
-                <div>例如：将 H1, H2 都替换为 H3</div>
+                <div>💡 提示：</div>
+                <div>• 标题替换：将 H1, H2 改为 H3 等</div>
+                <div>• 空行清理：移除多余的空行和间距</div>
             </div>
         </div>
     `;
@@ -156,9 +345,14 @@ function showHeadingConfigUI() {
         rulesDiv.style.display = this.checked ? 'block' : 'none';
     });
     
-    document.getElementById('saveHeadingConfig').addEventListener('click', saveConfigFromUI);
-    document.getElementById('resetHeadingConfig').addEventListener('click', resetConfigUI);
-    document.getElementById('closeHeadingConfig').addEventListener('click', () => configUI.remove());
+    document.getElementById('enableEmptyLineCleanup').addEventListener('change', function() {
+        const optionsDiv = document.getElementById('cleanupOptions');
+        optionsDiv.style.display = this.checked ? 'block' : 'none';
+    });
+    
+    document.getElementById('saveAllConfig').addEventListener('click', saveAllConfigFromUI);
+    document.getElementById('resetAllConfig').addEventListener('click', resetAllConfigUI);
+    document.getElementById('closeConfig').addEventListener('click', () => configUI.remove());
     
     // 绑定替换规则的change事件
     document.querySelectorAll('.replacement-select').forEach(select => {
@@ -235,6 +429,86 @@ function resetConfigUI() {
     console.log('🔄 标题替换配置已重置');
 }
 
+// 更新空行清理配置
+function updateEmptyLineConfigFromUI() {
+    emptyLineCleanupConfig.enabled = document.getElementById('enableEmptyLineCleanup').checked;
+    emptyLineCleanupConfig.removeEmptyParagraphs = document.getElementById('removeEmptyParagraphs').checked;
+    emptyLineCleanupConfig.removeEmptyDivs = document.getElementById('removeEmptyDivs').checked;
+    emptyLineCleanupConfig.removeExcessiveLineBreaks = document.getElementById('removeExcessiveLineBreaks').checked;
+    emptyLineCleanupConfig.compactSpacing = document.getElementById('compactSpacing').checked;
+}
+
+// 保存所有配置
+function saveAllConfigFromUI() {
+    // 更新标题替换配置
+    headingReplacementConfig.enabled = document.getElementById('enableHeadingReplacement').checked;
+    updateConfigFromUI();
+    saveHeadingConfig();
+    
+    // 更新空行清理配置
+    updateEmptyLineConfigFromUI();
+    saveEmptyLineConfig();
+    
+    // 显示保存成功提示
+    const button = document.getElementById('saveAllConfig');
+    if (button) {
+        const originalText = button.textContent;
+        button.textContent = '✅ 已保存';
+        button.style.background = '#52c41a';
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = '#52c41a';
+        }, 1000);
+    }
+    
+    console.log('✅ 所有配置已保存');
+    console.log('标题替换配置:', headingReplacementConfig);
+    console.log('空行清理配置:', emptyLineCleanupConfig);
+}
+
+// 重置所有配置
+function resetAllConfigUI() {
+    // 重置标题替换配置
+    headingReplacementConfig = {
+        enabled: false,
+        replacements: {
+            'h1': 'h3',
+            'h2': 'h3',
+            'h3': 'h3',
+            'h4': 'h4',
+            'h5': 'h5',
+            'h6': 'h6'
+        }
+    };
+    
+    // 重置空行清理配置
+    emptyLineCleanupConfig = {
+        enabled: true,
+        removeEmptyParagraphs: true,
+        removeEmptyDivs: true,
+        removeExcessiveLineBreaks: true,
+        compactSpacing: true
+    };
+    
+    // 更新界面
+    document.getElementById('enableHeadingReplacement').checked = false;
+    document.getElementById('replacementRules').style.display = 'none';
+    
+    document.getElementById('enableEmptyLineCleanup').checked = true;
+    document.getElementById('cleanupOptions').style.display = 'block';
+    document.getElementById('removeEmptyParagraphs').checked = true;
+    document.getElementById('removeEmptyDivs').checked = true;
+    document.getElementById('removeExcessiveLineBreaks').checked = true;
+    document.getElementById('compactSpacing').checked = true;
+    
+    document.querySelectorAll('.replacement-select').forEach(select => {
+        const fromTag = select.dataset.from;
+        select.value = headingReplacementConfig.replacements[fromTag];
+    });
+    
+    console.log('🔄 所有配置已重置');
+}
+
 // 检测是否在钉钉环境
 const isDingTalkEnv = window.location.hostname.includes('dingtalk') || 
                      window.location.hostname.includes('dingding') ||
@@ -247,6 +521,7 @@ if (isDingTalkEnv) {
 
 // 加载配置
 loadHeadingConfig();
+loadEmptyLineConfig();
 
 // 添加快捷键监听 (Ctrl+Shift+H 打开标题配置)
 document.addEventListener('keydown', (e) => {
@@ -631,14 +906,21 @@ document.addEventListener('copy', async (e) => {
                 // 应用标题替换（在生成HTML之前）
                 const headingReplacements = applyHeadingReplacements(tempContainer);
                 
+                // 应用空行清理（在标题替换之后）
+                const cleanupCount = applyEmptyLineCleanup(tempContainer);
+                
                 fullHtml = tempContainer.innerHTML;
                 plainText = tempContainer.textContent || tempContainer.innerText || '';
                 
+                let logMessage = '✅ 使用增强样式保持方法（包含表格标题处理';
                 if (headingReplacements > 0) {
-                    console.log('✅ 使用增强样式保持方法（包含表格标题处理和标题替换）');
-                } else {
-                    console.log('✅ 使用增强样式保持方法（包含表格标题处理）');
+                    logMessage += '和标题替换';
                 }
+                if (cleanupCount > 0) {
+                    logMessage += '和空行清理';
+                }
+                logMessage += '）';
+                console.log(logMessage);
             } else {
                 throw new Error('无法获取选中区域信息');
             }
@@ -653,6 +935,9 @@ document.addEventListener('copy', async (e) => {
             // 即使在基础方法中也应用标题替换
             applyHeadingReplacements(container);
             
+            // 应用空行清理
+            applyEmptyLineCleanup(container);
+            
             fullHtml = container.innerHTML;
             plainText = container.textContent || container.innerText || '';
         }
@@ -665,6 +950,9 @@ document.addEventListener('copy', async (e) => {
             
             // 应用标题替换
             applyHeadingReplacements(container);
+            
+            // 应用空行清理
+            applyEmptyLineCleanup(container);
             
             fullHtml = container.innerHTML;
             plainText = container.textContent || container.innerText || '';
@@ -908,12 +1196,17 @@ window.testImageInliner = function() {
 // 添加配置管理的全局函数
 window.imageInlinerConfig = {
     show: showHeadingConfigUI,
-    getConfig: () => headingReplacementConfig,
-    setConfig: (config) => {
+    getHeadingConfig: () => headingReplacementConfig,
+    setHeadingConfig: (config) => {
         headingReplacementConfig = { ...headingReplacementConfig, ...config };
         saveHeadingConfig();
     },
-    reset: () => {
+    getEmptyLineConfig: () => emptyLineCleanupConfig,
+    setEmptyLineConfig: (config) => {
+        emptyLineCleanupConfig = { ...emptyLineCleanupConfig, ...config };
+        saveEmptyLineConfig();
+    },
+    resetHeading: () => {
         headingReplacementConfig = {
             enabled: false,
             replacements: {
@@ -926,6 +1219,16 @@ window.imageInlinerConfig = {
             }
         };
         saveHeadingConfig();
+    },
+    resetEmptyLine: () => {
+        emptyLineCleanupConfig = {
+            enabled: true,
+            removeEmptyParagraphs: true,
+            removeEmptyDivs: true,
+            removeExcessiveLineBreaks: true,
+            compactSpacing: true
+        };
+        saveEmptyLineConfig();
     }
 };
 
@@ -933,6 +1236,8 @@ console.log('💡 提示：');
 console.log('- 运行 testImageInliner() 测试功能');
 console.log('- 运行 imageInlinerConfig.show() 打开配置界面');
 console.log('- 使用快捷键 Ctrl+Shift+H 打开配置界面');
+console.log('- 可用配置：标题替换 + 空行清理');
+console.log('- 空行清理默认启用，可移除多余空行让内容更紧凑');
 
 // 监听扩展上下文失效事件
 window.addEventListener('beforeunload', () => {
