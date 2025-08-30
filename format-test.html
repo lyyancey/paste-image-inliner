@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>格式保持测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .copy-area {
+            border: 2px solid #1890ff;
+            background: #e6f7ff;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .paste-area {
+            border: 2px dashed #52c41a;
+            background: #f6ffed;
+            padding: 20px;
+            min-height: 150px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover { background: #40a9ff; }
+        
+        /* 测试样式 */
+        .large-text { font-size: 24px; }
+        .medium-text { font-size: 18px; }
+        .small-text { font-size: 12px; }
+        .red-text { color: #ff4d4f; }
+        .blue-text { color: #1890ff; }
+        .green-text { color: #52c41a; }
+        .bold-text { font-weight: bold; }
+        .italic-text { font-style: italic; }
+        .underline-text { text-decoration: underline; }
+        .highlight-bg { background-color: #fff2e6; }
+        .serif-font { font-family: 'Times New Roman', serif; }
+        .mono-font { font-family: 'Courier New', monospace; }
+        .custom-style {
+            background: linear-gradient(45deg, #ff9a9e, #fecfef);
+            padding: 10px;
+            border-radius: 5px;
+            border: 2px solid #ff69b4;
+            color: #8b0000;
+            font-weight: bold;
+        }
+        
+        h1 { color: #722ed1; font-size: 28px; }
+        h2 { color: #fa541c; font-size: 22px; }
+        h3 { color: #13c2c2; font-size: 18px; }
+        
+        .styled-image {
+            border: 3px solid #ff7875;
+            border-radius: 10px;
+            padding: 5px;
+            background: #fff1f0;
+            margin: 10px;
+        }
+        
+        .image-caption {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            margin-top: 5px;
+        }
+        
+        .complex-layout {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            background: #f0f2f5;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .text-block {
+            flex: 1;
+        }
+        
+        .image-block {
+            flex: 0 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 格式保持测试页面</h1>
+    
+    <div class="test-section">
+        <h2>📝 测试1：基础文字格式</h2>
+        <p>选择下面的内容进行复制测试：</p>
+        <div class="copy-area" id="basicFormat">
+            <h1>这是一级标题</h1>
+            <h2>这是二级标题</h2>
+            <h3>这是三级标题</h3>
+            <p class="large-text red-text bold-text">大号红色粗体文字</p>
+            <p class="medium-text blue-text italic-text">中号蓝色斜体文字</p>
+            <p class="small-text green-text underline-text">小号绿色下划线文字</p>
+            <p class="highlight-bg serif-font">高亮背景 + 衬线字体</p>
+            <p class="mono-font">等宽字体文本 - Monospace Font</p>
+            <div class="custom-style">自定义复杂样式文本块</div>
+        </div>
+        
+        <button class="btn" onclick="copyContent('basicFormat')">复制基础格式</button>
+        
+        <h3>粘贴区域：</h3>
+        <div class="paste-area" contenteditable="true" id="pasteBasic">
+            点击这里，然后按 Ctrl+V 粘贴...
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🖼️ 测试2：图片 + 格式混合</h2>
+        <p>选择下面包含图片和格式的内容：</p>
+        <div class="copy-area" id="mixedContent">
+            <h2 class="red-text">包含图片的格式化内容</h2>
+            <p class="large-text blue-text">这是<strong class="bold-text">粗体</strong>和<em class="italic-text">斜体</em>混合的文字。</p>
+            
+            <div class="complex-layout">
+                <div class="text-block">
+                    <h3 class="green-text">左侧文本块</h3>
+                    <p class="medium-text">这段文字包含<span class="highlight-bg underline-text">高亮下划线</span>效果。</p>
+                </div>
+                <div class="image-block">
+                    <img src="https://via.placeholder.com/100x80/ff6b6b/ffffff?text=格式测试1" 
+                         alt="测试图片1" class="styled-image">
+                    <div class="image-caption">图片说明文字</div>
+                </div>
+            </div>
+            
+            <p class="serif-font large-text">这里有更多图片：</p>
+            <img src="https://via.placeholder.com/80x60/4ecdc4/ffffff?text=TEST2" alt="测试图片2" class="styled-image">
+            <img src="https://via.placeholder.com/80x60/45b7d1/ffffff?text=TEST3" alt="测试图片3" class="styled-image">
+            
+            <div class="custom-style">
+                <p class="bold-text">复杂样式块内的内容</p>
+                <img src="https://via.placeholder.com/60x60/f39c12/ffffff?text=内嵌" alt="内嵌图片">
+            </div>
+        </div>
+        
+        <button class="btn" onclick="copyContent('mixedContent')">复制混合内容</button>
+        
+        <h3>粘贴区域：</h3>
+        <div class="paste-area" contenteditable="true" id="pasteMixed">
+            点击这里，然后按 Ctrl+V 粘贴...
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 测试3：表格和列表格式</h2>
+        <div class="copy-area" id="structuredContent">
+            <h3 class="blue-text">结构化内容测试</h3>
+            
+            <ul style="color: #722ed1; font-weight: bold;">
+                <li class="large-text">第一项 - <span class="red-text">红色文字</span></li>
+                <li class="medium-text">第二项 - <span class="green-text underline-text">绿色下划线</span></li>
+                <li class="small-text">第三项 - <img src="https://via.placeholder.com/30x30/e74c3c/ffffff?text=小图" alt="小图标" style="vertical-align: middle;"> 内联图片</li>
+            </ul>
+            
+            <table style="border-collapse: collapse; width: 100%; margin: 15px 0;">
+                <tr style="background: #f0f2f5;">
+                    <th style="border: 1px solid #d9d9d9; padding: 8px; color: #1890ff;">列1</th>
+                    <th style="border: 1px solid #d9d9d9; padding: 8px; color: #1890ff;">列2</th>
+                    <th style="border: 1px solid #d9d9d9; padding: 8px; color: #1890ff;">图片列</th>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #d9d9d9; padding: 8px; color: #722ed1; font-weight: bold;">数据1</td>
+                    <td style="border: 1px solid #d9d9d9; padding: 8px; color: #fa541c; font-style: italic;">数据2</td>
+                    <td style="border: 1px solid #d9d9d9; padding: 8px; text-align: center;">
+                        <img src="https://via.placeholder.com/40x40/52c41a/ffffff?text=表格" alt="表格图片">
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <button class="btn" onclick="copyContent('structuredContent')">复制结构化内容</button>
+        
+        <h3>粘贴区域：</h3>
+        <div class="paste-area" contenteditable="true" id="pasteStructured">
+            点击这里，然后按 Ctrl+V 粘贴...
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 操作说明</h2>
+        <ol>
+            <li><strong>选择内容</strong>：用鼠标选中上面任一测试区域的内容</li>
+            <li><strong>复制</strong>：按 Ctrl+C 或点击"复制"按钮</li>
+            <li><strong>粘贴</strong>：点击对应的粘贴区域，然后按 Ctrl+V</li>
+            <li><strong>检查结果</strong>：看看格式是否保持，图片是否成功转换</li>
+        </ol>
+        
+        <h3>检查重点：</h3>
+        <ul>
+            <li>✅ 文字颜色是否保持</li>
+            <li>✅ 字体大小是否正确</li>
+            <li>✅ 粗体、斜体、下划线是否保留</li>
+            <li>✅ 背景色和边框样式是否保留</li>
+            <li>✅ 标题层级是否正确</li>
+            <li>✅ 表格和列表结构是否完整</li>
+            <li>✅ 图片是否显示且已转换为内联格式</li>
+        </ul>
+        
+        <button class="btn" onclick="clearAllPasteAreas()">清空所有粘贴区域</button>
+        <button class="btn" onclick="showClipboardInfo()">查看剪贴板信息</button>
+    </div>
+
+    <script>
+        function copyContent(elementId) {
+            const element = document.getElementById(elementId);
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            try {
+                document.execCommand('copy');
+                console.log('复制成功:', elementId);
+            } catch (e) {
+                console.error('复制失败:', e);
+            }
+        }
+        
+        function clearAllPasteAreas() {
+            document.querySelectorAll('.paste-area').forEach(area => {
+                area.innerHTML = '点击这里，然后按 Ctrl+V 粘贴...';
+            });
+        }
+        
+        async function showClipboardInfo() {
+            try {
+                const clipboardItems = await navigator.clipboard.read();
+                console.log('=== 剪贴板内容分析 ===');
+                
+                for (const item of clipboardItems) {
+                    console.log('可用类型:', item.types);
+                    
+                    if (item.types.includes('text/html')) {
+                        const htmlBlob = await item.getType('text/html');
+                        const html = await htmlBlob.text();
+                        console.log('HTML长度:', html.length);
+                        console.log('包含data:image数量:', (html.match(/data:image/g) || []).length);
+                        console.log('包含http图片数量:', (html.match(/src="http/g) || []).length);
+                        console.log('HTML片段:', html.substring(0, 200) + '...');
+                    }
+                    
+                    if (item.types.includes('text/plain')) {
+                        const textBlob = await item.getType('text/plain');
+                        const text = await textBlob.text();
+                        console.log('纯文本长度:', text.length);
+                        console.log('文本片段:', text.substring(0, 100) + '...');
+                    }
+                }
+            } catch (e) {
+                console.error('无法读取剪贴板:', e);
+            }
+        }
+        
+        // 监听粘贴事件
+        document.addEventListener('paste', (e) => {
+            console.log('=== 粘贴事件触发 ===');
+            const htmlData = e.clipboardData?.getData('text/html');
+            const textData = e.clipboardData?.getData('text/plain');
+            
+            if (htmlData) {
+                console.log('粘贴HTML长度:', htmlData.length);
+                console.log('内联图片数量:', (htmlData.match(/src="data:image/g) || []).length);
+                console.log('外链图片数量:', (htmlData.match(/src="http/g) || []).length);
+                
+                // 检查样式保持情况
+                const styleCount = (htmlData.match(/style="/g) || []).length;
+                const colorCount = (htmlData.match(/color:/g) || []).length;
+                const fontSizeCount = (htmlData.match(/font-size:/g) || []).length;
+                
+                console.log('样式属性数量:', styleCount);
+                console.log('颜色属性数量:', colorCount);
+                console.log('字体大小属性数量:', fontSizeCount);
+            }
+            
+            if (textData) {
+                console.log('粘贴文本长度:', textData.length);
+            }
+        });
+        
+        console.log('格式保持测试页面已加载');
+    </script>
+</body>
+</html>

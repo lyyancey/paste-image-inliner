@@ -79,14 +79,122 @@ document.addEventListener('copy', async (e) => {
         // 阻止默认复制，我们自己处理
         e.preventDefault();
 
-        // 先设置基本的剪贴板内容（作为备份）
-        const container = document.createElement('div');
-        container.appendChild(fragment.cloneNode(true));
-        const fallbackHtml = container.innerHTML;
-        const fallbackText = container.textContent || container.innerText || '';
+        // 获取完整的HTML内容，保持所有格式和样式
+        const originalRange = selection.getRangeAt(0);
+        let fullHtml = '';
+        let plainText = '';
+        
+        // 方法1：使用 Range.toString() 和更精确的HTML提取
+        try {
+            // 获取选中内容的HTML，保持原始结构
+            if (typeof originalRange.getClientRects === 'function' && originalRange.getClientRects().length > 0) {
+                // 创建临时容器
+                const tempContainer = document.createElement('div');
+                
+                // 克隆选中的内容，包括所有子节点
+                const clonedContents = originalRange.cloneContents();
+                tempContainer.appendChild(clonedContents);
+                
+                // 遍历所有元素，确保样式被保留
+                const allElements = tempContainer.querySelectorAll('*');
+                const originalElements = originalRange.commonAncestorContainer.querySelectorAll ? 
+                    originalRange.commonAncestorContainer.querySelectorAll('*') : [];
+                
+                // 为每个元素应用计算样式
+                allElements.forEach((element, index) => {
+                    try {
+                        // 尝试找到对应的原始元素
+                        let originalElement = null;
+                        if (originalElements[index] && originalElements[index].tagName === element.tagName) {
+                            originalElement = originalElements[index];
+                        } else {
+                            // 按标签名和内容匹配
+                            const matches = Array.from(originalElements).filter(el => 
+                                el.tagName === element.tagName && 
+                                el.textContent === element.textContent
+                            );
+                            originalElement = matches[0];
+                        }
+                        
+                        if (originalElement) {
+                            const computedStyle = window.getComputedStyle(originalElement);
+                            
+                            // 获取重要的可视样式属性
+                            const importantStyles = [
+                                'color', 'background-color', 'background', 'font-size', 'font-weight', 
+                                'font-family', 'font-style', 'text-decoration', 'text-decoration-line',
+                                'text-decoration-color', 'text-decoration-style', 'text-align', 
+                                'line-height', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 
+                                'margin-left', 'padding', 'padding-top', 'padding-right', 'padding-bottom', 
+                                'padding-left', 'border', 'border-color', 'border-style', 'border-width',
+                                'border-radius', 'display', 'width', 'height', 'max-width', 'max-height',
+                                'min-width', 'min-height', 'vertical-align', 'text-transform', 'letter-spacing',
+                                'word-spacing', 'white-space', 'opacity', 'box-shadow', 'text-shadow'
+                            ];
+                            
+                            let styleString = element.getAttribute('style') || '';
+                            
+                            importantStyles.forEach(property => {
+                                const value = computedStyle.getPropertyValue(property);
+                                if (value && 
+                                    value !== 'initial' && 
+                                    value !== 'normal' && 
+                                    value !== 'none' && 
+                                    value !== 'auto' &&
+                                    value !== 'rgba(0, 0, 0, 0)' &&
+                                    value !== 'transparent' &&
+                                    !styleString.includes(property)) {
+                                    
+                                    // 检查是否是默认值
+                                    if (property === 'color' && (value === 'rgb(0, 0, 0)' || value === '#000000')) {
+                                        return; // 跳过默认黑色
+                                    }
+                                    if (property === 'font-size' && value === '16px') {
+                                        return; // 跳过默认字体大小
+                                    }
+                                    
+                                    styleString += `${property}: ${value}; `;
+                                }
+                            });
+                            
+                            if (styleString.trim()) {
+                                element.setAttribute('style', styleString.trim());
+                            }
+                        }
+                    } catch (styleError) {
+                        console.warn('单个元素样式处理失败:', styleError);
+                    }
+                });
+                
+                fullHtml = tempContainer.innerHTML;
+                plainText = tempContainer.textContent || tempContainer.innerText || '';
+                
+                console.log('✅ 使用增强样式保持方法');
+            } else {
+                throw new Error('无法获取选中区域信息');
+            }
+        } catch (enhancedError) {
+            console.warn('增强样式提取失败，使用基础方法:', enhancedError);
+            
+            // 回退到基础方法
+            const container = document.createElement('div');
+            const clonedFragment = originalRange.cloneContents();
+            container.appendChild(clonedFragment);
+            fullHtml = container.innerHTML;
+            plainText = container.textContent || container.innerText || '';
+        }
+        
+        // 确保我们有有效的内容
+        if (!fullHtml) {
+            const container = document.createElement('div');
+            const clonedFragment = originalRange.cloneContents();
+            container.appendChild(clonedFragment);
+            fullHtml = container.innerHTML;
+            plainText = container.textContent || container.innerText || '';
+        }
 
-        e.clipboardData.setData('text/html', fallbackHtml);
-        e.clipboardData.setData('text/plain', fallbackText);
+        e.clipboardData.setData('text/html', fullHtml);
+        e.clipboardData.setData('text/plain', plainText);
 
         console.log('📋 已设置备用剪贴板内容');
 
@@ -109,8 +217,10 @@ document.addEventListener('copy', async (e) => {
             console.log('📡 收到background script响应:', response);
 
             if (response && response.results) {
-                // 替换图片URL为data URL
-                const containerImages = container.querySelectorAll('img');
+                // 使用保留样式的HTML容器替换图片URL
+                const workingContainer = document.createElement('div');
+                workingContainer.innerHTML = fullHtml;
+                const containerImages = workingContainer.querySelectorAll('img');
                 let successCount = 0;
                 
                 containerImages.forEach(img => {
@@ -123,6 +233,15 @@ document.addEventListener('copy', async (e) => {
                         img.removeAttribute('data-original');
                         img.removeAttribute('loading');
                         img.removeAttribute('data-lazy-src');
+                        
+                        // 保持图片的显示样式
+                        if (!img.style.maxWidth && !img.style.width) {
+                            img.style.maxWidth = '100%';
+                        }
+                        if (!img.style.height) {
+                            img.style.height = 'auto';
+                        }
+                        
                         successCount++;
                         console.log('✅ 图片转换成功:', src.substring(0, 50) + '...');
                     } else {
@@ -131,9 +250,9 @@ document.addEventListener('copy', async (e) => {
                 });
 
                 if (successCount > 0) {
-                    // 获取处理后的HTML
-                    const modifiedHtml = container.innerHTML;
-                    const textContent = container.textContent || container.innerText || '';
+                    // 获取处理后的HTML，保持所有样式
+                    const modifiedHtml = workingContainer.innerHTML;
+                    const textContent = workingContainer.textContent || workingContainer.innerText || '';
 
                     console.log('📋 更新剪贴板内容...');
                     console.log('HTML长度:', modifiedHtml.length);
@@ -147,7 +266,7 @@ document.addEventListener('copy', async (e) => {
                                 'text/plain': new Blob([textContent], { type: 'text/plain' })
                             })
                         ]);
-                        console.log('✅ 剪贴板已更新，包含', successCount, '张内联图片');
+                        console.log('✅ 剪贴板已更新，包含', successCount, '张内联图片，保持原始格式');
                     } catch (clipboardError) {
                         console.warn('❌ 现代剪贴板API失败:', clipboardError);
                         // 如果现代API失败，内容已经通过e.clipboardData设置了
