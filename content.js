@@ -201,32 +201,44 @@ function applyHeadingReplacements(container) {
     let replacementCount = 0;
     const replacements = headingReplacementConfig.replacements;
     
-    // 查找所有标题元素
+    // 收集所有需要替换的标题元素及其替换目标
+    const elementsToReplace = [];
+    
+    // 查找所有标题元素并记录原始标签和目标标签
     for (const [fromTag, toTag] of Object.entries(replacements)) {
         if (fromTag === toTag) continue; // 跳过相同的标签
         
         const headings = container.querySelectorAll(fromTag);
         headings.forEach(heading => {
             if (toTag && toTag !== fromTag) {
-                // 创建新的标题元素
-                const newHeading = document.createElement(toTag);
-                
-                // 复制所有属性
-                Array.from(heading.attributes).forEach(attr => {
-                    newHeading.setAttribute(attr.name, attr.value);
+                elementsToReplace.push({
+                    element: heading,
+                    fromTag: fromTag,
+                    toTag: toTag
                 });
-                
-                // 复制内容
-                newHeading.innerHTML = heading.innerHTML;
-                
-                // 替换元素
-                heading.parentNode.replaceChild(newHeading, heading);
-                replacementCount++;
-                
-                console.log(`📝 ${fromTag.toUpperCase()} -> ${toTag.toUpperCase()}: ${newHeading.textContent.substring(0, 30)}...`);
             }
         });
     }
+    
+    // 执行替换（一次性替换，避免重复处理）
+    elementsToReplace.forEach(({ element, fromTag, toTag }) => {
+        // 创建新的标题元素
+        const newHeading = document.createElement(toTag);
+        
+        // 复制所有属性
+        Array.from(element.attributes).forEach(attr => {
+            newHeading.setAttribute(attr.name, attr.value);
+        });
+        
+        // 复制内容
+        newHeading.innerHTML = element.innerHTML;
+        
+        // 替换元素
+        element.parentNode.replaceChild(newHeading, element);
+        replacementCount++;
+        
+        console.log(`📝 ${fromTag.toUpperCase()} -> ${toTag.toUpperCase()}: ${newHeading.textContent.substring(0, 30)}...`);
+    });
     
     if (replacementCount > 0) {
         console.log(`✅ 完成标题替换，共替换 ${replacementCount} 个标题`);

@@ -129,7 +129,44 @@
     </div>
 
     <div class="test-container">
-        <h2>🖼️ 测试2：标题+图片混合内容</h2>
+        <h2>� 测试3：复杂替换场景（修复测试）</h2>
+        <p><strong>问题场景：</strong> H1→H4, H4→H5 时，避免 H1 最终变成 H5</p>
+        
+        <div class="status warning">
+            <strong>测试目标：</strong><br>
+            • H1 应该只变成 H4（不是 H5）<br>
+            • 原始 H4 应该变成 H5<br>
+            • 确保每个元素只按原始标签替换一次
+        </div>
+        
+        <div class="sample-content">
+            <h1>原始H1标题 - 应该变成H4</h1>
+            <p>这个H1标题在设置 H1→H4, H4→H5 的规则下，应该只变成H4，而不是H5。</p>
+            
+            <h4>原始H4标题 - 应该变成H5</h4>
+            <p>这个H4标题应该变成H5。</p>
+            
+            <h1>另一个H1标题 - 也应该变成H4</h1>
+            <p>这也是一个H1，应该变成H4。</p>
+            
+            <h4>另一个H4标题 - 也应该变成H5</h4>
+            <p>这也是一个H4，应该变成H5。</p>
+            
+            <h2>H2标题保持不变</h2>
+            <h3>H3标题保持不变</h3>
+        </div>
+        
+        <div style="margin: 15px 0;">
+            <button class="btn" onclick="setupComplexReplacement()">🔧 设置复杂替换规则</button>
+            <button class="btn" onclick="selectContent('.test-container:nth-of-type(4) .sample-content')">📋 选择测试内容</button>
+            <button class="btn success" onclick="testComplexReplacement()">🧪 专项测试</button>
+        </div>
+        
+        <div id="complexTestResult" class="status" style="display: none; margin-top: 15px;"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>�🖼️ 测试4：标题+图片混合内容</h2>
         <p>测试在有图片的情况下标题替换是否正常工作：</p>
         <div class="sample-content">
             <h1 style="color: #ff4d4f;">产品介绍 - H1标题</h1>
@@ -329,6 +366,54 @@
                 console.error('剪贴板分析失败:', e);
                 alert('无法分析剪贴板，请检查权限设置');
             }
+        }
+        
+        // 设置复杂替换规则
+        function setupComplexReplacement() {
+            if (typeof imageInlinerConfig !== 'undefined') {
+                imageInlinerConfig.setHeadingConfig({
+                    enabled: true,
+                    replacements: {
+                        'h1': 'h4',  // H1 → H4
+                        'h4': 'h5',  // H4 → H5
+                        'h2': 'h2',  // H2 保持不变
+                        'h3': 'h3',  // H3 保持不变
+                        'h5': 'h5',  // H5 保持不变
+                        'h6': 'h6'   // H6 保持不变
+                    }
+                });
+                alert('✅ 已设置复杂替换规则：\nH1 → H4\nH4 → H5\n其他级别保持不变');
+                updateConfigDisplay();
+            } else {
+                alert('请先加载插件内容脚本');
+            }
+        }
+
+        // 测试复杂替换
+        function testComplexReplacement() {
+            const resultDiv = document.getElementById('complexTestResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'status warning';
+            resultDiv.innerHTML = `
+                <strong>🧪 复杂替换测试进行中...</strong><br>
+                <small>1. 请先点击"设置复杂替换规则"</small><br>
+                <small>2. 然后选择并复制测试内容</small><br>
+                <small>3. 查看控制台输出的替换日志</small><br>
+                <small>4. 粘贴到其他地方验证结果</small><br><br>
+                <strong>预期结果：</strong><br>
+                • "原始H1标题" → H4 标签<br>
+                • "原始H4标题" → H5 标签<br>
+                • 每个元素只替换一次，避免连续替换
+            `;
+            
+            // 自动选择测试内容
+            selectContent('.test-container:nth-of-type(4) .sample-content');
+            
+            console.log('🧪 复杂替换测试说明：');
+            console.log('当前设置：H1→H4, H4→H5');
+            console.log('原始H1应该变成H4（不是H5）');
+            console.log('原始H4应该变成H5');
+            console.log('请复制选中的内容并观察控制台输出');
         }
         
         // 显示调试信息

@@ -205,6 +205,7 @@
             <button class="btn-primary" onclick="enableAllCleanup()">✅ 启用全部清理</button>
             <button class="btn-secondary" onclick="disableAllCleanup()">❌ 禁用全部清理</button>
             <button class="btn-success" onclick="showCurrentConfig()">📊 显示当前配置</button>
+            <button class="btn-primary" onclick="testComplexReplacement()">🔄 测试复杂替换</button>
         </div>
         
         <div id="configDisplay" class="analysis-result" style="display: none;"></div>
@@ -348,6 +349,30 @@ ${clipboardHTML.substring(0, 500)}${clipboardHTML.length > 500 ? '...' : ''}` : 
             } catch (err) {
                 alert('无法访问剪贴板: ' + err.message);
                 console.error('剪贴板访问失败:', err);
+            }
+        }
+
+        // 测试复杂标题替换（修复H1→H4→H5问题）
+        function testComplexReplacement() {
+            if (typeof imageInlinerConfig !== 'undefined') {
+                // 设置复杂替换规则
+                imageInlinerConfig.setHeadingConfig({
+                    enabled: true,
+                    replacements: {
+                        'h1': 'h4',  // H1 → H4
+                        'h4': 'h5',  // H4 → H5
+                        'h2': 'h2',  // 其他保持不变
+                        'h3': 'h3',
+                        'h5': 'h5',
+                        'h6': 'h6'
+                    }
+                });
+                
+                console.log('✅ 已设置复杂替换规则：H1→H4, H4→H5');
+                alert('已设置复杂替换规则：H1→H4, H4→H5\n请复制包含H1和H4的内容进行测试\n原始H1应该只变成H4（不是H5）');
+                showCurrentConfig();
+            } else {
+                alert('请先加载插件内容脚本');
             }
         }
 
