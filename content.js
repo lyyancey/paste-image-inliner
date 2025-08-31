@@ -20,6 +20,14 @@ let emptyLineCleanupConfig = {
     compactSpacing: true
 };
 
+// 链接处理配置
+let linkProcessingConfig = {
+    enabled: true,
+    removeLinks: true,
+    convertToRedText: true,
+    redColor: '#ff4d4f' // 默认红色
+};
+
 console.log('图片内联转换插件已加载');
 
 // 检测扩展上下文是否有效
@@ -75,6 +83,85 @@ function saveEmptyLineConfig() {
     } catch (e) {
         console.warn('保存空行清理配置失败:', e);
     }
+}
+
+// 加载链接处理配置
+function loadLinkProcessingConfig() {
+    try {
+        const saved = localStorage.getItem('imageInliner_linkProcessingConfig');
+        if (saved) {
+            linkProcessingConfig = { ...linkProcessingConfig, ...JSON.parse(saved) };
+            console.log('🔗 已加载链接处理配置:', linkProcessingConfig);
+        }
+    } catch (e) {
+        console.warn('加载链接处理配置失败:', e);
+    }
+}
+
+// 保存链接处理配置
+function saveLinkProcessingConfig() {
+    try {
+        localStorage.setItem('imageInliner_linkProcessingConfig', JSON.stringify(linkProcessingConfig));
+        console.log('💾 已保存链接处理配置');
+    } catch (e) {
+        console.warn('保存链接处理配置失败:', e);
+    }
+}
+
+// 应用链接处理
+function applyLinkProcessing(container) {
+    if (!linkProcessingConfig.enabled) {
+        console.log('🔗 链接处理功能未启用');
+        return 0;
+    }
+    
+    let processedCount = 0;
+    
+    if (linkProcessingConfig.removeLinks) {
+        const links = container.querySelectorAll('a');
+        
+        links.forEach(link => {
+            if (linkProcessingConfig.convertToRedText) {
+                // 创建一个span元素替换链接
+                const span = document.createElement('span');
+                
+                // 复制链接的文本内容
+                span.textContent = link.textContent;
+                
+                // 设置红色样式
+                span.style.color = linkProcessingConfig.redColor;
+                span.style.fontWeight = 'bold'; // 可选：加粗以突出显示
+                
+                // 保持原有的其他样式（如果有的话）
+                const computedStyle = window.getComputedStyle(link);
+                if (computedStyle.fontSize && computedStyle.fontSize !== '16px') {
+                    span.style.fontSize = computedStyle.fontSize;
+                }
+                if (computedStyle.fontFamily && computedStyle.fontFamily !== 'serif') {
+                    span.style.fontFamily = computedStyle.fontFamily;
+                }
+                
+                // 替换链接元素
+                link.parentNode.replaceChild(span, link);
+                processedCount++;
+                
+                console.log(`🔗 链接转红字: ${span.textContent.substring(0, 30)}...`);
+            } else {
+                // 只移除链接，保留文本
+                const textNode = document.createTextNode(link.textContent);
+                link.parentNode.replaceChild(textNode, link);
+                processedCount++;
+                
+                console.log(`🔗 移除链接: ${link.textContent.substring(0, 30)}...`);
+            }
+        });
+    }
+    
+    if (processedCount > 0) {
+        console.log(`✅ 完成链接处理，共处理 ${processedCount} 个链接`);
+    }
+    
+    return processedCount;
 }
 
 // 应用空行清理
@@ -335,6 +422,39 @@ function showHeadingConfigUI() {
                 </div>
             </div>
             
+            <!-- 链接处理设置 -->
+            <div style="margin-bottom: 20px; padding: 15px; background: #fff7e6; border-radius: 6px;">
+                <h4 style="margin: 0 0 10px 0; color: #333; font-size: 14px;">🔗 链接处理</h4>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="enableLinkProcessing" ${linkProcessingConfig.enabled ? 'checked' : ''} style="margin-right: 8px;">
+                        <span style="font-weight: bold;">启用链接处理功能</span>
+                    </label>
+                </div>
+                
+                <div id="linkProcessingOptions" style="display: ${linkProcessingConfig.enabled ? 'block' : 'none'};">
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px;">
+                            <input type="checkbox" id="removeLinks" ${linkProcessingConfig.removeLinks ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>移除链接</span>
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px;">
+                            <input type="checkbox" id="convertToRedText" ${linkProcessingConfig.convertToRedText ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>转换为红色文字</span>
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px;">
+                            <span style="margin-right: 8px;">红色值:</span>
+                            <input type="color" id="redColorPicker" value="${linkProcessingConfig.redColor}" style="width: 50px; height: 25px; border: none; border-radius: 3px; cursor: pointer;">
+                            <input type="text" id="redColorText" value="${linkProcessingConfig.redColor}" style="margin-left: 8px; width: 80px; font-size: 12px; padding: 2px 4px; border: 1px solid #ccc; border-radius: 3px;">
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
             <div style="margin-top: 15px; display: flex; gap: 10px;">
                 <button id="saveAllConfig" style="background: #52c41a; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; flex: 1;">保存</button>
                 <button id="resetAllConfig" style="background: #fa8c16; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; flex: 1;">重置</button>
@@ -344,6 +464,7 @@ function showHeadingConfigUI() {
             <div style="margin-top: 10px; font-size: 12px; color: #666;">
                 <div>💡 提示：</div>
                 <div>• 标题替换：将 H1, H2 改为 H3 等</div>
+                <div>• 链接处理：移除链接并转为红色文字</div>
                 <div>• 空行清理：移除多余的空行和间距</div>
             </div>
         </div>
@@ -360,6 +481,23 @@ function showHeadingConfigUI() {
     document.getElementById('enableEmptyLineCleanup').addEventListener('change', function() {
         const optionsDiv = document.getElementById('cleanupOptions');
         optionsDiv.style.display = this.checked ? 'block' : 'none';
+    });
+    
+    document.getElementById('enableLinkProcessing').addEventListener('change', function() {
+        const optionsDiv = document.getElementById('linkProcessingOptions');
+        optionsDiv.style.display = this.checked ? 'block' : 'none';
+    });
+    
+    // 颜色选择器和文本框联动
+    document.getElementById('redColorPicker').addEventListener('change', function() {
+        document.getElementById('redColorText').value = this.value;
+    });
+    
+    document.getElementById('redColorText').addEventListener('change', function() {
+        const color = this.value;
+        if (/^#[0-9A-F]{6}$/i.test(color)) {
+            document.getElementById('redColorPicker').value = color;
+        }
     });
     
     document.getElementById('saveAllConfig').addEventListener('click', saveAllConfigFromUI);
@@ -450,6 +588,14 @@ function updateEmptyLineConfigFromUI() {
     emptyLineCleanupConfig.compactSpacing = document.getElementById('compactSpacing').checked;
 }
 
+// 更新链接处理配置
+function updateLinkProcessingConfigFromUI() {
+    linkProcessingConfig.enabled = document.getElementById('enableLinkProcessing').checked;
+    linkProcessingConfig.removeLinks = document.getElementById('removeLinks').checked;
+    linkProcessingConfig.convertToRedText = document.getElementById('convertToRedText').checked;
+    linkProcessingConfig.redColor = document.getElementById('redColorText').value;
+}
+
 // 保存所有配置
 function saveAllConfigFromUI() {
     // 更新标题替换配置
@@ -460,6 +606,10 @@ function saveAllConfigFromUI() {
     // 更新空行清理配置
     updateEmptyLineConfigFromUI();
     saveEmptyLineConfig();
+    
+    // 更新链接处理配置
+    updateLinkProcessingConfigFromUI();
+    saveLinkProcessingConfig();
     
     // 显示保存成功提示
     const button = document.getElementById('saveAllConfig');
@@ -502,6 +652,14 @@ function resetAllConfigUI() {
         compactSpacing: true
     };
     
+    // 重置链接处理配置
+    linkProcessingConfig = {
+        enabled: true,
+        removeLinks: true,
+        convertToRedText: true,
+        redColor: '#ff4d4f'
+    };
+    
     // 更新界面
     document.getElementById('enableHeadingReplacement').checked = false;
     document.getElementById('replacementRules').style.display = 'none';
@@ -512,6 +670,13 @@ function resetAllConfigUI() {
     document.getElementById('removeEmptyDivs').checked = true;
     document.getElementById('removeExcessiveLineBreaks').checked = true;
     document.getElementById('compactSpacing').checked = true;
+    
+    document.getElementById('enableLinkProcessing').checked = true;
+    document.getElementById('linkProcessingOptions').style.display = 'block';
+    document.getElementById('removeLinks').checked = true;
+    document.getElementById('convertToRedText').checked = true;
+    document.getElementById('redColorText').value = '#ff4d4f';
+    document.getElementById('redColorPicker').value = '#ff4d4f';
     
     document.querySelectorAll('.replacement-select').forEach(select => {
         const fromTag = select.dataset.from;
@@ -534,6 +699,7 @@ if (isDingTalkEnv) {
 // 加载配置
 loadHeadingConfig();
 loadEmptyLineConfig();
+loadLinkProcessingConfig();
 
 // 添加快捷键监听 (Ctrl+Shift+H 打开标题配置)
 document.addEventListener('keydown', (e) => {
@@ -918,7 +1084,10 @@ document.addEventListener('copy', async (e) => {
                 // 应用标题替换（在生成HTML之前）
                 const headingReplacements = applyHeadingReplacements(tempContainer);
                 
-                // 应用空行清理（在标题替换之后）
+                // 应用链接处理（在标题替换之后）
+                const linkProcessedCount = applyLinkProcessing(tempContainer);
+                
+                // 应用空行清理（在链接处理之后）
                 const cleanupCount = applyEmptyLineCleanup(tempContainer);
                 
                 fullHtml = tempContainer.innerHTML;
@@ -927,6 +1096,9 @@ document.addEventListener('copy', async (e) => {
                 let logMessage = '✅ 使用增强样式保持方法（包含表格标题处理';
                 if (headingReplacements > 0) {
                     logMessage += '和标题替换';
+                }
+                if (linkProcessedCount > 0) {
+                    logMessage += '和链接处理';
                 }
                 if (cleanupCount > 0) {
                     logMessage += '和空行清理';
@@ -947,6 +1119,9 @@ document.addEventListener('copy', async (e) => {
             // 即使在基础方法中也应用标题替换
             applyHeadingReplacements(container);
             
+            // 应用链接处理
+            applyLinkProcessing(container);
+            
             // 应用空行清理
             applyEmptyLineCleanup(container);
             
@@ -962,6 +1137,9 @@ document.addEventListener('copy', async (e) => {
             
             // 应用标题替换
             applyHeadingReplacements(container);
+            
+            // 应用链接处理
+            applyLinkProcessing(container);
             
             // 应用空行清理
             applyEmptyLineCleanup(container);
@@ -1218,6 +1396,11 @@ window.imageInlinerConfig = {
         emptyLineCleanupConfig = { ...emptyLineCleanupConfig, ...config };
         saveEmptyLineConfig();
     },
+    getLinkProcessingConfig: () => linkProcessingConfig,
+    setLinkProcessingConfig: (config) => {
+        linkProcessingConfig = { ...linkProcessingConfig, ...config };
+        saveLinkProcessingConfig();
+    },
     resetHeading: () => {
         headingReplacementConfig = {
             enabled: false,
@@ -1241,6 +1424,15 @@ window.imageInlinerConfig = {
             compactSpacing: true
         };
         saveEmptyLineConfig();
+    },
+    resetLinkProcessing: () => {
+        linkProcessingConfig = {
+            enabled: true,
+            removeLinks: true,
+            convertToRedText: true,
+            redColor: '#ff4d4f'
+        };
+        saveLinkProcessingConfig();
     }
 };
 
@@ -1248,8 +1440,9 @@ console.log('💡 提示：');
 console.log('- 运行 testImageInliner() 测试功能');
 console.log('- 运行 imageInlinerConfig.show() 打开配置界面');
 console.log('- 使用快捷键 Ctrl+Shift+H 打开配置界面');
-console.log('- 可用配置：标题替换 + 空行清理');
-console.log('- 空行清理默认启用，可移除多余空行让内容更紧凑');
+console.log('- 可用配置：标题替换 + 链接处理 + 空行清理');
+console.log('- 链接处理：移除链接并转为红色文字（默认启用）');
+console.log('- 空行清理：移除多余空行让内容更紧凑（默认启用）');
 
 // 监听扩展上下文失效事件
 window.addEventListener('beforeunload', () => {

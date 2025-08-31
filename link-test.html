@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>链接处理功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .test-content {
+            border: 2px dashed #007acc;
+            padding: 20px;
+            margin: 15px 0;
+            background-color: #f8f9fa;
+            user-select: text;
+            cursor: text;
+        }
+        
+        .test-content a {
+            color: #1890ff;
+            text-decoration: underline;
+        }
+        
+        .test-content a:hover {
+            color: #40a9ff;
+        }
+        
+        .info-panel {
+            background: #e8f4fd;
+            border-left: 4px solid #007acc;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .config-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .config-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background: #007acc;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .analysis-result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        
+        .demo-red-text {
+            color: #ff4d4f;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔗 链接处理功能测试</h1>
+        
+        <div class="info-panel">
+            <strong>功能说明：</strong><br>
+            这个页面用于测试链接处理功能。当你复制下面的测试内容时，插件会自动：
+            <ul>
+                <li>🔗 移除所有超链接标签</li>
+                <li>🎨 将链接文字转换为红色文字</li>
+                <li>💪 保持文字的粗体样式</li>
+                <li>✨ 保留原有的文本格式</li>
+            </ul>
+        </div>
+        
+        <div class="config-buttons">
+            <button class="btn-primary" onclick="openConfig()">⚙️ 打开配置界面</button>
+            <button class="btn-secondary" onclick="testFunction()">🧪 测试功能</button>
+            <button class="btn-success" onclick="analyzeClipboard()">📋 分析剪贴板</button>
+            <button class="btn-warning" onclick="testLinkProcessing()">🔗 专项测试链接处理</button>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>📝 测试内容1：基础链接处理（选择并复制）</h2>
+        
+        <div class="test-content" id="testContent1">
+            <p>这是一段包含链接的文字：请参考<a href="https://example.com/guide">用户指南</a>了解详细信息。</p>
+            
+            <p>你可以访问<a href="https://docs.example.com">官方文档</a>获取更多帮助，或者查看<a href="mailto:support@example.com">联系我们</a>页面。</p>
+            
+            <span>参考<a href="zh-cn_topic_0000002102227448.html">开发环境元数据导出</a>章节功能将元数据导出成zip包。</span>
+            
+            <p>更多示例：<a href="/api/docs" style="font-weight: bold;">API文档</a>、<a href="/tutorial">入门教程</a>和<a href="/faq">常见问题</a>。</p>
+        </div>
+        
+        <div class="info-panel">
+            <strong>预期结果：</strong><br>
+            复制后，所有的链接文字应该变成 <span class="demo-red-text">红色粗体文字</span>，不再是链接。
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>📝 测试内容2：复杂混合内容（选择并复制）</h2>
+        
+        <div class="test-content" id="testContent2">
+            <h2>技术文档示例</h2>
+            
+            <p>在开始之前，请确保已阅读<a href="/getting-started">快速开始指南</a>。</p>
+            
+            <h3>配置步骤</h3>
+            <ol>
+                <li>下载<a href="/downloads/config.zip">配置文件包</a></li>
+                <li>参考<a href="/docs/configuration">配置文档</a>进行设置</li>
+                <li>运行<a href="/docs/commands#test">测试命令</a>验证配置</li>
+            </ol>
+            
+            <blockquote>
+                <p>注意：如遇到问题，请查看<a href="/troubleshooting">故障排除指南</a>或<a href="mailto:tech-support@example.com">联系技术支持</a>。</p>
+            </blockquote>
+            
+            <p>更多信息可参考：</p>
+            <ul>
+                <li><a href="/advanced-guide">高级使用指南</a></li>
+                <li><a href="/api-reference">API参考手册</a></li>
+                <li><a href="/best-practices">最佳实践</a></li>
+            </ul>
+            
+            <img src="https://via.placeholder.com/100x60/4ecdc4/ffffff?text=示例图" alt="示例图片" style="float: right; margin: 0 0 10px 10px;">
+            
+            <p>如需进一步了解产品特性，请访问<a href="/features">功能介绍页面</a>。</p>
+        </div>
+        
+        <div class="info-panel">
+            <strong>预期结果：</strong><br>
+            • 保持所有标题、列表、引用块的格式<br>
+            • 所有链接文字变成红色粗体<br>
+            • 图片正常显示<br>
+            • 文档结构完整保留
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>⚙️ 配置测试</h2>
+        
+        <div class="info-panel">
+            <strong>配置选项说明：</strong>
+            <ul>
+                <li><strong>启用链接处理：</strong> 总开关，控制是否处理链接</li>
+                <li><strong>移除链接：</strong> 移除 &lt;a&gt; 标签，保留文字内容</li>
+                <li><strong>转换为红色文字：</strong> 将链接文字设置为红色并加粗</li>
+                <li><strong>红色值：</strong> 自定义红色的颜色值（默认 #ff4d4f）</li>
+            </ul>
+        </div>
+        
+        <div class="config-buttons">
+            <button class="btn-primary" onclick="enableAllLinkProcessing()">✅ 启用全部处理</button>
+            <button class="btn-secondary" onclick="disableAllLinkProcessing()">❌ 禁用全部处理</button>
+            <button class="btn-warning" onclick="setCustomRedColor()">🎨 设置自定义红色</button>
+            <button class="btn-success" onclick="showCurrentConfig()">📊 显示当前配置</button>
+        </div>
+        
+        <div id="configDisplay" class="analysis-result" style="display: none;"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>📊 剪贴板分析</h2>
+        
+        <p>点击下面的按钮来分析剪贴板内容中的链接处理效果：</p>
+        
+        <div class="config-buttons">
+            <button class="btn-success" onclick="analyzeClipboard()">🔍 分析剪贴板内容</button>
+            <button class="btn-secondary" onclick="clearAnalysis()">🗑️ 清除分析结果</button>
+        </div>
+        
+        <div id="clipboardAnalysis" class="analysis-result" style="display: none;"></div>
+    </div>
+
+    <script>
+        // 打开配置界面
+        function openConfig() {
+            if (typeof imageInlinerConfig !== 'undefined') {
+                imageInlinerConfig.show();
+            } else {
+                alert('请先加载插件内容脚本');
+            }
+        }
+
+        // 测试功能
+        function testFunction() {
+            if (typeof testImageInliner !== 'undefined') {
+                testImageInliner();
+            } else {
+                alert('请先加载插件内容脚本');
+                console.log('请确保插件已加载，然后在控制台运行 testImageInliner()');
+            }
+        }
+
+        // 专项测试链接处理
+        function testLinkProcessing() {
+            if (typeof imageInlinerConfig !== 'undefined') {
+                // 确保链接处理功能启用
+                imageInlinerConfig.setLinkProcessingConfig({
+                    enabled: true,
+                    removeLinks: true,
+                    convertToRedText: true,
+                    redColor: '#ff4d4f'
+                });
+                
+                console.log('✅ 已启用链接处理功能');
+                alert('已启用链接处理功能\n请复制包含链接的测试内容\n链接文字将转换为红色文字');
+                showCurrentConfig();
+            } else {
+                alert('请先加载插件内容脚本');
+            }
+        }
+
+        // 启用全部链接处理功能
+        function enableAllLinkProcessing() {
+            if (typeof imageInlinerConfig !== 'undefined') {
+                imageInlinerConfig.setLinkProcessingConfig({
+                    enabled: true,
+                    removeLinks: true,
+                    convertToRedText: true,
+                    redColor: '#ff4d4f'
+                });
+                console.log('✅ 已启用全部链接处理功能');
+                alert('已启用全部链接处理功能');
+            } else {
+                alert('请先加载插件内容脚本');
+            }
+        }
+
+        // 禁用全部链接处理功能
+        function disableAllLinkProcessing() {
+            if (typeof imageInlinerConfig !== 'undefined') {
+                imageInlinerConfig.setLinkProcessingConfig({
+                    enabled: false
+                });
+                console.log('❌ 已禁用链接处理功能');
+                alert('已禁用链接处理功能');
+            } else {
+                alert('请先加载插件内容脚本');
+            }
+        }
+
+        // 设置自定义红色
+        function setCustomRedColor() {
+            const color = prompt('请输入自定义红色值（如 #ff0000 或 #dc3545）:', '#ff4d4f');
+            if (color && typeof imageInlinerConfig !== 'undefined') {
+                if (/^#[0-9A-F]{6}$/i.test(color)) {
+                    imageInlinerConfig.setLinkProcessingConfig({
+                        redColor: color
+                    });
+                    alert(`已设置自定义红色: ${color}`);
+                    showCurrentConfig();
+                } else {
+                    alert('颜色格式不正确，请使用 #RRGGBB 格式');
+                }
+            }
+        }
+
+        // 显示当前配置
+        function showCurrentConfig() {
+            if (typeof imageInlinerConfig !== 'undefined') {
+                const headingConfig = imageInlinerConfig.getHeadingConfig();
+                const emptyLineConfig = imageInlinerConfig.getEmptyLineConfig();
+                const linkConfig = imageInlinerConfig.getLinkProcessingConfig();
+                
+                const configText = `当前配置状态：
+
+【标题替换配置】
+启用状态: ${headingConfig.enabled ? '✅ 已启用' : '❌ 未启用'}
+
+【链接处理配置】
+启用状态: ${linkConfig.enabled ? '✅ 已启用' : '❌ 未启用'}
+移除链接: ${linkConfig.removeLinks ? '✅' : '❌'}
+转换为红色文字: ${linkConfig.convertToRedText ? '✅' : '❌'}
+红色值: ${linkConfig.redColor}
+
+【空行清理配置】
+启用状态: ${emptyLineConfig.enabled ? '✅ 已启用' : '❌ 未启用'}
+移除空段落: ${emptyLineConfig.removeEmptyParagraphs ? '✅' : '❌'}
+移除空div: ${emptyLineConfig.removeEmptyDivs ? '✅' : '❌'}
+移除多余换行: ${emptyLineConfig.removeExcessiveLineBreaks ? '✅' : '❌'}
+紧凑间距: ${emptyLineConfig.compactSpacing ? '✅' : '❌'}`;
+
+                document.getElementById('configDisplay').style.display = 'block';
+                document.getElementById('configDisplay').textContent = configText;
+                
+                console.log('📊 当前配置:', { headingConfig, emptyLineConfig, linkConfig });
+            } else {
+                alert('请先加载插件内容脚本');
+            }
+        }
+
+        // 分析剪贴板内容
+        async function analyzeClipboard() {
+            try {
+                const clipboardText = await navigator.clipboard.readText();
+                
+                // 尝试读取HTML内容
+                let clipboardHTML = '';
+                try {
+                    const clipboardItems = await navigator.clipboard.read();
+                    for (const item of clipboardItems) {
+                        if (item.types.includes('text/html')) {
+                            const htmlBlob = await item.getType('text/html');
+                            clipboardHTML = await htmlBlob.text();
+                        }
+                    }
+                } catch (e) {
+                    console.log('无法读取HTML格式的剪贴板内容');
+                }
+
+                // 分析链接
+                const linkCount = clipboardHTML ? (clipboardHTML.match(/<a[^>]*>/gi) || []).length : 0;
+                const redTextCount = clipboardHTML ? (clipboardHTML.match(/color:\s*#ff4d4f/gi) || []).length : 0;
+                
+                const analysis = `剪贴板内容分析：
+
+【文本内容】
+长度: ${clipboardText.length} 字符
+行数: ${clipboardText.split('\n').length} 行
+
+【HTML内容】
+${clipboardHTML ? `长度: ${clipboardHTML.length} 字符
+包含图片: ${clipboardHTML.includes('<img') ? '✅' : '❌'}
+包含表格: ${clipboardHTML.includes('<table') ? '✅' : '❌'}
+包含标题: ${(/h[1-6]/i.test(clipboardHTML)) ? '✅' : '❌'}
+包含链接: ${linkCount} 个
+包含红色文字: ${redTextCount} 个` : '无HTML内容'}
+
+【链接处理效果】
+${linkCount === 0 && redTextCount > 0 ? '✅ 链接已成功转换为红色文字' : 
+  linkCount > 0 ? '⚠️ 仍有链接未处理' : 
+  '📝 未检测到链接内容'}
+
+【文本内容预览】
+${clipboardText.substring(0, 500)}${clipboardText.length > 500 ? '...' : ''}
+
+${clipboardHTML ? `【HTML内容预览】
+${clipboardHTML.substring(0, 500)}${clipboardHTML.length > 500 ? '...' : ''}` : ''}`;
+
+                document.getElementById('clipboardAnalysis').style.display = 'block';
+                document.getElementById('clipboardAnalysis').textContent = analysis;
+                
+                console.log('📋 剪贴板分析完成');
+            } catch (err) {
+                alert('无法访问剪贴板: ' + err.message);
+                console.error('剪贴板访问失败:', err);
+            }
+        }
+
+        // 清除分析结果
+        function clearAnalysis() {
+            document.getElementById('clipboardAnalysis').style.display = 'none';
+            document.getElementById('configDisplay').style.display = 'none';
+        }
+
+        // 页面加载完成后的初始化
+        window.addEventListener('load', function() {
+            console.log('🔗 链接处理测试页面已加载');
+            console.log('💡 使用说明：');
+            console.log('1. 选择包含链接的测试内容并复制');
+            console.log('2. 查看控制台的链接处理日志');
+            console.log('3. 使用配置按钮测试不同设置');
+            console.log('4. 分析剪贴板查看处理效果');
+        });
+    </script>
+</body>
+</html>
