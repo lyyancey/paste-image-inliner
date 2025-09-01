@@ -28,6 +28,14 @@ let linkProcessingConfig = {
     redColor: '#ff4d4f' // 默认红色
 };
 
+// 页脚过滤配置
+let footerFilterConfig = {
+    enabled: true,
+    removeFooter: true,
+    removeCopyright: true,
+    customKeywords: ['版权所有', '华为技术有限公司', 'Copyright', '©', '保留所有权利', 'All rights reserved']
+};
+
 console.log('图片内联转换插件已加载');
 
 // 检测扩展上下文是否有效
@@ -106,6 +114,125 @@ function saveLinkProcessingConfig() {
     } catch (e) {
         console.warn('保存链接处理配置失败:', e);
     }
+}
+
+// 加载页脚过滤配置
+function loadFooterFilterConfig() {
+    try {
+        const saved = localStorage.getItem('imageInliner_footerFilterConfig');
+        if (saved) {
+            footerFilterConfig = { ...footerFilterConfig, ...JSON.parse(saved) };
+            console.log('🦶 已加载页脚过滤配置:', footerFilterConfig);
+        }
+    } catch (e) {
+        console.warn('加载页脚过滤配置失败:', e);
+    }
+}
+
+// 保存页脚过滤配置
+function saveFooterFilterConfig() {
+    try {
+        localStorage.setItem('imageInliner_footerFilterConfig', JSON.stringify(footerFilterConfig));
+        console.log('💾 已保存页脚过滤配置');
+    } catch (e) {
+        console.warn('保存页脚过滤配置失败:', e);
+    }
+}
+
+// 应用页脚过滤
+function applyFooterFilter(container) {
+    if (!footerFilterConfig.enabled) {
+        console.log('🦶 页脚过滤功能未启用');
+        return 0;
+    }
+    
+    let filteredCount = 0;
+    
+    if (footerFilterConfig.removeFooter || footerFilterConfig.removeCopyright) {
+        // 查找页脚相关元素
+        const footerSelectors = [
+            'footer', 
+            '[class*="footer"]', 
+            '[id*="footer"]',
+            '[class*="copyright"]', 
+            '[id*="copyright"]',
+            '.page-footer',
+            '.site-footer',
+            '.main-footer'
+        ];
+        
+        footerSelectors.forEach(selector => {
+            const elements = container.querySelectorAll(selector);
+            elements.forEach(element => {
+                const text = element.textContent.trim();
+                if (shouldRemoveFooterElement(text)) {
+                    element.remove();
+                    filteredCount++;
+                    console.log(`🦶 移除页脚元素: ${text.substring(0, 50)}...`);
+                }
+            });
+        });
+        
+        // 检查所有元素的文本内容
+        const allElements = container.querySelectorAll('*');
+        allElements.forEach(element => {
+            // 只检查叶子节点（没有子元素的元素）
+            if (element.children.length === 0) {
+                const text = element.textContent.trim();
+                if (text && shouldRemoveFooterElement(text)) {
+                    // 检查父元素是否包含其他重要内容
+                    const parent = element.parentElement;
+                    if (parent && parent.children.length === 1) {
+                        // 如果父元素只包含这一个子元素，移除父元素
+                        parent.remove();
+                    } else {
+                        // 否则只移除当前元素
+                        element.remove();
+                    }
+                    filteredCount++;
+                    console.log(`🦶 移除版权文字: ${text.substring(0, 50)}...`);
+                }
+            }
+        });
+    }
+    
+    if (filteredCount > 0) {
+        console.log(`✅ 完成页脚过滤，共移除 ${filteredCount} 个元素`);
+    }
+    
+    return filteredCount;
+}
+
+// 判断是否应该移除页脚元素
+function shouldRemoveFooterElement(text) {
+    if (!text || text.length < 3) return false;
+    
+    const keywords = footerFilterConfig.customKeywords;
+    const lowerText = text.toLowerCase();
+    
+    // 检查是否包含版权相关关键词
+    const copyrightKeywords = ['版权所有', 'copyright', '©', '保留所有权利', 'all rights reserved'];
+    const hasCopyright = copyrightKeywords.some(keyword => 
+        lowerText.includes(keyword.toLowerCase())
+    );
+    
+    if (hasCopyright) {
+        // 进一步检查是否包含公司名称或其他关键词
+        const hasKeyword = keywords.some(keyword => 
+            lowerText.includes(keyword.toLowerCase())
+        );
+        
+        if (hasKeyword) {
+            return true;
+        }
+    }
+    
+    // 检查是否是纯粹的版权声明（较短且只包含版权信息）
+    if (text.length < 100 && hasCopyright) {
+        return true;
+    }
+    
+    return false;
 }
 
 // 应用链接处理
@@ -455,6 +582,35 @@ function showHeadingConfigUI() {
                 </div>
             </div>
             
+            <!-- 页脚过滤设置 -->
+            <div style="margin-bottom: 20px; padding: 15px; background: #f9f0ff; border-radius: 6px;">
+                <h4 style="margin: 0 0 10px 0; color: #333; font-size: 14px;">🦶 页脚过滤</h4>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="enableFooterFilter" ${footerFilterConfig.enabled ? 'checked' : ''} style="margin-right: 8px;">
+                        <span style="font-weight: bold;">启用页脚过滤功能</span>
+                    </label>
+                </div>
+                
+                <div id="footerFilterOptions" style="display: ${footerFilterConfig.enabled ? 'block' : 'none'};">
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px;">
+                            <input type="checkbox" id="removeFooter" ${footerFilterConfig.removeFooter ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>移除页脚元素</span>
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; font-size: 13px;">
+                            <input type="checkbox" id="removeCopyright" ${footerFilterConfig.removeCopyright ? 'checked' : ''} style="margin-right: 8px;">
+                            <span>移除版权信息</span>
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 8px; font-size: 12px; color: #666;">
+                        <div>默认过滤关键词：版权所有、华为技术有限公司、Copyright、©</div>
+                    </div>
+                </div>
+            </div>
+            
             <div style="margin-top: 15px; display: flex; gap: 10px;">
                 <button id="saveAllConfig" style="background: #52c41a; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; flex: 1;">保存</button>
                 <button id="resetAllConfig" style="background: #fa8c16; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; flex: 1;">重置</button>
@@ -465,6 +621,7 @@ function showHeadingConfigUI() {
                 <div>💡 提示：</div>
                 <div>• 标题替换：将 H1, H2 改为 H3 等</div>
                 <div>• 链接处理：移除链接并转为红色文字</div>
+                <div>• 页脚过滤：移除版权信息和页脚内容</div>
                 <div>• 空行清理：移除多余的空行和间距</div>
             </div>
         </div>
@@ -485,6 +642,11 @@ function showHeadingConfigUI() {
     
     document.getElementById('enableLinkProcessing').addEventListener('change', function() {
         const optionsDiv = document.getElementById('linkProcessingOptions');
+        optionsDiv.style.display = this.checked ? 'block' : 'none';
+    });
+    
+    document.getElementById('enableFooterFilter').addEventListener('change', function() {
+        const optionsDiv = document.getElementById('footerFilterOptions');
         optionsDiv.style.display = this.checked ? 'block' : 'none';
     });
     
@@ -576,6 +738,14 @@ function resetConfigUI() {
         select.value = headingReplacementConfig.replacements[fromTag];
     });
     
+    // 重置页脚过滤配置
+    footerFilterConfig = {
+        enabled: true,
+        keywords: ['版权所有', '华为技术有限公司', 'Copyright', '© 华为', '备案号', 'ICP']
+    };
+    saveFooterFilterConfig();
+    updateFooterFilterUI();
+    
     console.log('🔄 标题替换配置已重置');
 }
 
@@ -596,6 +766,13 @@ function updateLinkProcessingConfigFromUI() {
     linkProcessingConfig.redColor = document.getElementById('redColorText').value;
 }
 
+// 更新页脚过滤配置
+function updateFooterFilterConfigFromUI() {
+    footerFilterConfig.enabled = document.getElementById('enableFooterFilter').checked;
+    footerFilterConfig.removeFooter = document.getElementById('removeFooter').checked;
+    footerFilterConfig.removeCopyright = document.getElementById('removeCopyright').checked;
+}
+
 // 保存所有配置
 function saveAllConfigFromUI() {
     // 更新标题替换配置
@@ -610,6 +787,10 @@ function saveAllConfigFromUI() {
     // 更新链接处理配置
     updateLinkProcessingConfigFromUI();
     saveLinkProcessingConfig();
+    
+    // 更新页脚过滤配置
+    updateFooterFilterConfigFromUI();
+    saveFooterFilterConfig();
     
     // 显示保存成功提示
     const button = document.getElementById('saveAllConfig');
@@ -700,6 +881,7 @@ if (isDingTalkEnv) {
 loadHeadingConfig();
 loadEmptyLineConfig();
 loadLinkProcessingConfig();
+loadFooterFilterConfig();
 
 // 添加快捷键监听 (Ctrl+Shift+H 打开标题配置)
 document.addEventListener('keydown', (e) => {
@@ -717,6 +899,7 @@ function addConfigButton() {
     
     const configBtn = document.createElement('div');
     configBtn.id = 'imageInlinerConfigBtn';
+    configBtn.setAttribute('data-image-inliner-config', 'true');
     configBtn.innerHTML = '🔧';
     configBtn.title = '图片内联插件设置 (Ctrl+Shift+H)';
     configBtn.style.cssText = `
@@ -736,6 +919,11 @@ function addConfigButton() {
         z-index: 9999;
         box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         transition: all 0.3s ease;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        pointer-events: auto;
     `;
     
     configBtn.addEventListener('mouseenter', () => {
@@ -778,6 +966,17 @@ document.addEventListener('copy', async (e) => {
         const range = selection.getRangeAt(0);
         let adjustedRange = range.cloneRange();
         let needsAdjustment = false;
+        
+        // 检查是否选择了整个文档（Ctrl+A），如果是，需要排除插件添加的元素
+        let isSelectAll = false;
+        if (range.startContainer === document.documentElement || 
+            range.startContainer === document.body ||
+            (range.startContainer.nodeType === Node.ELEMENT_NODE && 
+             range.startOffset === 0 && 
+             range.endOffset === range.endContainer.childNodes.length)) {
+            isSelectAll = true;
+            console.log('🔍 检测到全选操作，将排除插件添加的元素');
+        }
         
         // 检查选中范围是否包含不完整的表格
         const fragment = range.cloneContents();
@@ -849,6 +1048,47 @@ document.addEventListener('copy', async (e) => {
                 // 克隆选中的内容，包括所有子节点
                 const clonedContents = originalRange.cloneContents();
                 tempContainer.appendChild(clonedContents);
+                
+                // 如果是全选操作，移除插件添加的元素
+                if (isSelectAll) {
+                    console.log('🧹 清理插件添加的元素...');
+                    
+                    // 移除配置按钮
+                    const configButtons = tempContainer.querySelectorAll('[id="imageInlinerConfigBtn"], [data-image-inliner-config]');
+                    configButtons.forEach(btn => {
+                        btn.remove();
+                        console.log('🗑️ 移除配置按钮');
+                    });
+                    
+                    // 移除测试内容
+                    const testElements = tempContainer.querySelectorAll('[data-image-inliner-test="true"]');
+                    testElements.forEach(elem => {
+                        elem.remove();
+                        console.log('🗑️ 移除测试内容');
+                    });
+                    
+                    // 移除配置界面
+                    const configUIs = tempContainer.querySelectorAll('[id="headingConfigUI"]');
+                    configUIs.forEach(ui => {
+                        ui.remove();
+                        console.log('🗑️ 移除配置界面');
+                    });
+                    
+                    // 移除任何包含插件相关文字的元素
+                    const allElements = tempContainer.querySelectorAll('*');
+                    allElements.forEach(elem => {
+                        const text = elem.textContent;
+                        if (text && (
+                            text.includes('图片内联转换插件') ||
+                            text.includes('🔧 内容处理设置') ||
+                            text.includes('testImageInliner') ||
+                            text.includes('imageInlinerConfig')
+                        )) {
+                            elem.remove();
+                            console.log('🗑️ 移除插件相关文字:', text.substring(0, 30) + '...');
+                        }
+                    });
+                }
                 
                 // 特殊处理：将表格标题转换为表格上方的独立文字
                 console.log('🔍 开始处理表格标题转换...');
@@ -1087,7 +1327,10 @@ document.addEventListener('copy', async (e) => {
                 // 应用链接处理（在标题替换之后）
                 const linkProcessedCount = applyLinkProcessing(tempContainer);
                 
-                // 应用空行清理（在链接处理之后）
+                // 应用页脚过滤（在链接处理之后）
+                const footerFilteredCount = applyFooterFilter(tempContainer);
+                
+                // 应用空行清理（在页脚过滤之后）
                 const cleanupCount = applyEmptyLineCleanup(tempContainer);
                 
                 fullHtml = tempContainer.innerHTML;
@@ -1099,6 +1342,9 @@ document.addEventListener('copy', async (e) => {
                 }
                 if (linkProcessedCount > 0) {
                     logMessage += '和链接处理';
+                }
+                if (footerFilteredCount > 0) {
+                    logMessage += '和页脚过滤';
                 }
                 if (cleanupCount > 0) {
                     logMessage += '和空行清理';
@@ -1116,11 +1362,26 @@ document.addEventListener('copy', async (e) => {
             const clonedFragment = originalRange.cloneContents();
             container.appendChild(clonedFragment);
             
+            // 如果是全选操作，移除插件添加的元素
+            if (isSelectAll) {
+                console.log('🧹 基础方法：清理插件添加的元素...');
+                
+                // 移除配置相关元素
+                const configElements = container.querySelectorAll('[id="imageInlinerConfigBtn"], [data-image-inliner-config], [id="headingConfigUI"], [data-image-inliner-test="true"]');
+                configElements.forEach(elem => {
+                    elem.remove();
+                    console.log('🗑️ 基础方法：移除插件元素');
+                });
+            }
+            
             // 即使在基础方法中也应用标题替换
             applyHeadingReplacements(container);
             
             // 应用链接处理
             applyLinkProcessing(container);
+            
+            // 应用页脚过滤
+            applyFooterFilter(container);
             
             // 应用空行清理
             applyEmptyLineCleanup(container);
@@ -1135,11 +1396,21 @@ document.addEventListener('copy', async (e) => {
             const clonedFragment = originalRange.cloneContents();
             container.appendChild(clonedFragment);
             
+            // 如果是全选操作，移除插件添加的元素
+            if (isSelectAll) {
+                console.log('🧹 后备方法：清理插件添加的元素...');
+                const configElements = container.querySelectorAll('[id="imageInlinerConfigBtn"], [data-image-inliner-config], [id="headingConfigUI"], [data-image-inliner-test="true"]');
+                configElements.forEach(elem => elem.remove());
+            }
+            
             // 应用标题替换
             applyHeadingReplacements(container);
             
             // 应用链接处理
             applyLinkProcessing(container);
+            
+            // 应用页脚过滤
+            applyFooterFilter(container);
             
             // 应用空行清理
             applyEmptyLineCleanup(container);
@@ -1367,6 +1638,21 @@ window.testImageInliner = function() {
         <img src="https://via.placeholder.com/50x50/ff0000/ffffff?text=TEST" alt="测试图片">
     `;
     
+    // 设置测试内容不可选择和标记
+    testDiv.style.cssText = `
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        position: fixed;
+        top: -9999px;
+        left: -9999px;
+        opacity: 0;
+        pointer-events: none;
+        z-index: -1;
+    `;
+    testDiv.setAttribute('data-image-inliner-test', 'true');
+    
     // 选择测试内容
     const selection = window.getSelection();
     const range = document.createRange();
@@ -1562,3 +1848,64 @@ function insertHtmlAtCursor(html) {
   sel.removeAllRanges();
   sel.addRange(range);
 }
+
+// 全局配置管理对象
+const configManager = {
+    // 标题替换配置管理
+    headingReplacement: {
+        load: loadHeadingReplacementConfig,
+        save: saveHeadingReplacementConfig,
+        updateUI: updateHeadingReplacementUI,
+        updateFromUI: updateHeadingReplacementConfigFromUI,
+        reset: resetConfigUI
+    },
+    
+    // 空行清理配置管理
+    emptyLineCleanup: {
+        load: loadEmptyLineCleanupConfig,
+        save: saveEmptyLineCleanupConfig,
+        updateUI: updateEmptyLineCleanupUI,
+        updateFromUI: updateEmptyLineConfigFromUI
+    },
+    
+    // 链接处理配置管理
+    linkProcessing: {
+        load: loadLinkProcessingConfig,
+        save: saveLinkProcessingConfig,
+        updateUI: updateLinkProcessingUI,
+        updateFromUI: updateLinkProcessingConfigFromUI
+    },
+    
+    // 页脚过滤配置管理
+    footerFilter: {
+        load: loadFooterFilterConfig,
+        save: saveFooterFilterConfig,
+        updateUI: updateFooterFilterUI,
+        updateFromUI: updateFooterFilterConfigFromUI
+    },
+    
+    // 全局配置操作
+    saveAll: saveAllConfigFromUI,
+    loadAll: function() {
+        this.headingReplacement.load();
+        this.emptyLineCleanup.load();
+        this.linkProcessing.load();
+        this.footerFilter.load();
+    },
+    
+    updateAllUI: function() {
+        this.headingReplacement.updateUI();
+        this.emptyLineCleanup.updateUI();
+        this.linkProcessing.updateUI();
+        this.footerFilter.updateUI();
+    },
+    
+    resetAll: function() {
+        this.headingReplacement.reset();
+        // 重置其他配置...
+        console.log('📋 所有配置已重置为默认值');
+    }
+};
+
+// 初始化配置管理器
+console.log('🔧 配置管理器已初始化');

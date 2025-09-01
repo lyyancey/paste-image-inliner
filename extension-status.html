@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome扩展功能状态检查</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .feature-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fafafa;
+        }
+        .feature-card.active {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+        .feature-card.inactive {
+            border-color: #dc3545;
+            background: #fff8f8;
+        }
+        .feature-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .status-icon {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        .feature-description {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .test-link {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #007acc;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .test-link:hover {
+            background: #005a9e;
+        }
+        .config-info {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .shortcut-info {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .status-summary {
+            background: #d4edda;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠️ Chrome扩展功能状态检查</h1>
+        
+        <div class="status-summary">
+            <h2 id="overallStatus">正在检查扩展状态...</h2>
+            <p id="statusDescription">请稍候...</p>
+        </div>
+
+        <div class="shortcut-info">
+            <h3>⌨️ 快捷键</h3>
+            <p><strong>Ctrl+Shift+H</strong> - 打开配置面板</p>
+            <p><strong>Ctrl+A → Ctrl+C → Ctrl+V</strong> - 测试完整复制粘贴流程</p>
+        </div>
+
+        <div class="config-info">
+            <h3>📊 功能统计</h3>
+            <p id="featureStats">正在加载...</p>
+        </div>
+
+        <div class="feature-grid">
+            <!-- 页脚过滤功能 -->
+            <div class="feature-card" id="footerFilter">
+                <div class="feature-title">
+                    <span class="status-icon">🚫</span>
+                    页脚过滤
+                </div>
+                <div class="feature-description">
+                    智能识别并过滤页脚版权信息，避免复制不需要的内容
+                </div>
+                <a href="footer-test.html" class="test-link">页脚测试</a>
+            </div>
+
+            <!-- 图片内联功能 -->
+            <div class="feature-card" id="imageInlining">
+                <div class="feature-title">
+                    <span class="status-icon">🖼️</span>
+                    图片内联处理
+                </div>
+                <div class="feature-description">
+                    将页面中的图片转换为base64格式，解决钉钉复制粘贴图片失败问题
+                </div>
+                <a href="simple-test.html" class="test-link">基础测试</a>
+            </div>
+
+            <!-- 标题替换功能 -->
+            <div class="feature-card" id="headingReplacement">
+                <div class="feature-title">
+                    <span class="status-icon">📝</span>
+                    标题替换
+                </div>
+                <div class="feature-description">
+                    智能替换HTML标题标签，支持h1→h3、h2→h3等自定义替换规则
+                </div>
+                <a href="heading-test.html" class="test-link">标题测试</a>
+            </div>
+
+            <!-- 链接处理功能 -->
+            <div class="feature-card" id="linkProcessing">
+                <div class="feature-title">
+                    <span class="status-icon">🔗</span>
+                    链接处理
+                </div>
+                <div class="feature-description">
+                    移除链接并将文字转换为红色文本，保持内容的可读性
+                </div>
+                <a href="link-test.html" class="test-link">链接测试</a>
+            </div>
+
+            <!-- 空行清理功能 -->
+            <div class="feature-card" id="emptyLineCleanup">
+                <div class="feature-title">
+                    <span class="status-icon">🧹</span>
+                    空行清理
+                </div>
+                <div class="feature-description">
+                    自动清理多余的空行和空白段落，让内容更加紧凑
+                </div>
+                <a href="empty-line-test.html" class="test-link">空行测试</a>
+            </div>
+
+            <!-- 全选过滤功能 -->
+            <div class="feature-card" id="selectAllFilter">
+                <div class="feature-title">
+                    <span class="status-icon">🎯</span>
+                    全选过滤
+                </div>
+                <div class="feature-description">
+                    在Ctrl+A操作时自动过滤插件自身的设置按钮等元素
+                </div>
+                <a href="select-all-test.html" class="test-link">全选测试</a>
+            </div>
+        </div>
+
+        <div class="config-info">
+            <h3>🔧 配置管理</h3>
+            <div id="configStatus">正在加载配置信息...</div>
+            <button onclick="openConfigPanel()" style="margin-top: 10px; padding: 10px 20px; background: #007acc; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                打开配置面板
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 检查扩展状态
+        function checkExtensionStatus() {
+            console.log('🔍 开始检查扩展状态...');
+            
+            const features = [
+                { id: 'footerFilter', name: '页脚过滤', check: () => window.footerFilterConfig?.enabled },
+                { id: 'imageInlining', name: '图片内联', check: () => true }, // 基础功能，总是启用
+                { id: 'headingReplacement', name: '标题替换', check: () => window.headingReplacementConfig?.enabled },
+                { id: 'linkProcessing', name: '链接处理', check: () => window.linkProcessingConfig?.enabled },
+                { id: 'emptyLineCleanup', name: '空行清理', check: () => window.emptyLineCleanupConfig?.enabled },
+                { id: 'selectAllFilter', name: '全选过滤', check: () => true } // 基础功能
+            ];
+
+            let activeCount = 0;
+            let totalCount = features.length;
+
+            features.forEach(feature => {
+                const card = document.getElementById(feature.id);
+                const isActive = feature.check();
+                
+                if (isActive) {
+                    card.className = 'feature-card active';
+                    card.querySelector('.status-icon').textContent = '✅';
+                    activeCount++;
+                } else {
+                    card.className = 'feature-card inactive';
+                    card.querySelector('.status-icon').textContent = '❌';
+                }
+            });
+
+            // 更新总体状态
+            const overallStatus = document.getElementById('overallStatus');
+            const statusDescription = document.getElementById('statusDescription');
+            const featureStats = document.getElementById('featureStats');
+
+            if (activeCount === totalCount) {
+                overallStatus.textContent = '🎉 所有功能正常运行';
+                overallStatus.style.color = '#28a745';
+                statusDescription.textContent = '扩展已完全加载，所有功能可用';
+            } else if (activeCount > totalCount / 2) {
+                overallStatus.textContent = '⚠️ 部分功能运行中';
+                overallStatus.style.color = '#ffc107';
+                statusDescription.textContent = `${activeCount}/${totalCount} 个功能已启用`;
+            } else {
+                overallStatus.textContent = '❌ 扩展可能未正确加载';
+                overallStatus.style.color = '#dc3545';
+                statusDescription.textContent = '请检查扩展是否正确安装';
+            }
+
+            featureStats.textContent = `启用功能: ${activeCount}/${totalCount} | 成功率: ${Math.round(activeCount/totalCount*100)}%`;
+
+            // 显示配置信息
+            updateConfigStatus();
+        }
+
+        // 更新配置状态
+        function updateConfigStatus() {
+            const configStatus = document.getElementById('configStatus');
+            let statusHtml = '<ul>';
+            
+            if (window.footerFilterConfig) {
+                statusHtml += `<li><strong>页脚过滤:</strong> ${window.footerFilterConfig.enabled ? '✅ 启用' : '❌ 禁用'} (关键词: ${window.footerFilterConfig.keywords.length}个)</li>`;
+            }
+            
+            if (window.headingReplacementConfig) {
+                statusHtml += `<li><strong>标题替换:</strong> ${window.headingReplacementConfig.enabled ? '✅ 启用' : '❌ 禁用'}</li>`;
+            }
+            
+            if (window.linkProcessingConfig) {
+                statusHtml += `<li><strong>链接处理:</strong> ${window.linkProcessingConfig.enabled ? '✅ 启用' : '❌ 禁用'}</li>`;
+            }
+            
+            if (window.emptyLineCleanupConfig) {
+                statusHtml += `<li><strong>空行清理:</strong> ${window.emptyLineCleanupConfig.enabled ? '✅ 启用' : '❌ 禁用'}</li>`;
+            }
+            
+            statusHtml += '</ul>';
+            configStatus.innerHTML = statusHtml;
+        }
+
+        // 打开配置面板
+        function openConfigPanel() {
+            // 模拟Ctrl+Shift+H快捷键
+            const event = new KeyboardEvent('keydown', {
+                key: 'H',
+                code: 'KeyH',
+                ctrlKey: true,
+                shiftKey: true,
+                bubbles: true
+            });
+            document.dispatchEvent(event);
+        }
+
+        // 页面加载完成后检查状态
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📊 状态检查页面已加载');
+            
+            // 延迟检查，确保扩展有时间加载
+            setTimeout(checkExtensionStatus, 1000);
+            
+            // 定期更新状态
+            setInterval(checkExtensionStatus, 5000);
+        });
+    </script>
+</body>
+</html>

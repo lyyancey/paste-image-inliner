@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全选复制测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .info-panel {
+            background: #e8f4fd;
+            border-left: 4px solid #007acc;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .warning-panel {
+            background: #fff7e6;
+            border-left: 4px solid #ffa940;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .success-panel {
+            background: #f6ffed;
+            border-left: 4px solid #52c41a;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .config-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .config-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background: #007acc;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .analysis-result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        
+        .content-area {
+            background: #f8f9fa;
+            border: 2px dashed #007acc;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        
+        .kbd {
+            background: #f5f5f5;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔍 全选复制测试（Ctrl+A 问题修复验证）</h1>
+        
+        <div class="warning-panel">
+            <strong>⚠️ 问题描述：</strong><br>
+            使用 Ctrl+A 全选复制时，会多出两行不想要的内容：
+            <ul>
+                <li>🖼️ 一张测试图片（来自测试功能）</li>
+                <li>📝 一行配置相关的文字</li>
+                <li>🔧 配置按钮</li>
+            </ul>
+        </div>
+        
+        <div class="success-panel">
+            <strong>✅ 修复方案：</strong><br>
+            插件现在会自动检测全选操作（Ctrl+A），并在复制时排除以下元素：
+            <ul>
+                <li>🗑️ 配置按钮和配置界面</li>
+                <li>🗑️ 测试内容和测试图片</li>
+                <li>🗑️ 插件相关的文字和元素</li>
+            </ul>
+        </div>
+        
+        <div class="config-buttons">
+            <button class="btn-primary" onclick="openConfig()">⚙️ 打开配置界面</button>
+            <button class="btn-secondary" onclick="testFunction()">🧪 运行测试功能</button>
+            <button class="btn-success" onclick="testSelectAll()">📋 测试全选复制</button>
+            <button class="btn-warning" onclick="analyzeClipboard()">🔍 分析剪贴板</button>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>📝 测试步骤</h2>
+        
+        <div class="info-panel">
+            <strong>测试方法：</strong>
+            <ol>
+                <li>🔧 点击"打开配置界面"按钮（会在页面添加配置界面）</li>
+                <li>🧪 点击"运行测试功能"按钮（会临时添加测试内容）</li>
+                <li>📋 点击"测试全选复制"或直接按 <span class="kbd">Ctrl+A</span> 全选所有内容</li>
+                <li>📎 按 <span class="kbd">Ctrl+C</span> 复制内容</li>
+                <li>🔍 点击"分析剪贴板"查看复制的内容</li>
+                <li>✅ 验证是否还包含不想要的插件元素</li>
+            </ol>
+        </div>
+        
+        <div class="warning-panel">
+            <strong>预期结果：</strong><br>
+            • 复制的内容中不应包含配置按钮<br>
+            • 复制的内容中不应包含测试图片<br>
+            • 复制的内容中不应包含插件相关文字<br>
+            • 只包含页面的正常内容
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>📊 页面正常内容</h2>
+        
+        <div class="content-area">
+            <h3>这是正常的页面内容</h3>
+            <p>这些内容应该被正常复制：</p>
+            
+            <ul>
+                <li>这是一个列表项</li>
+                <li>包含一些<a href="#link">链接文字</a>的内容</li>
+                <li>还有一些<strong>粗体文字</strong>和<em>斜体文字</em></li>
+            </ul>
+            
+            <h4>子标题示例</h4>
+            <p>这是一段普通的文字内容，应该会被正常复制。这里有一些<a href="https://example.com">外部链接</a>。</p>
+            
+            <blockquote>
+                <p>这是一个引用块，也应该被正常复制。</p>
+            </blockquote>
+            
+            <table border="1" style="border-collapse: collapse; margin: 10px 0;">
+                <caption>表格标题示例</caption>
+                <tr>
+                    <th>列1</th>
+                    <th>列2</th>
+                </tr>
+                <tr>
+                    <td>数据1</td>
+                    <td>数据2</td>
+                </tr>
+            </table>
+            
+            <p>这是最后一段文字，确保所有正常内容都能被复制。</p>
+        </div>
+        
+        <div class="info-panel">
+            <strong>说明：</strong> 上面蓝色框内的内容是页面的正常内容，应该被完整复制。
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>📋 剪贴板分析结果</h2>
+        
+        <div class="config-buttons">
+            <button class="btn-success" onclick="analyzeClipboard()">🔍 分析剪贴板内容</button>
+            <button class="btn-secondary" onclick="clearAnalysis()">🗑️ 清除分析结果</button>
+        </div>
+        
+        <div id="clipboardAnalysis" class="analysis-result" style="display: none;"></div>
+    </div>
+
+    <script>
+        // 打开配置界面
+        function openConfig() {
+            if (typeof imageInlinerConfig !== 'undefined') {
+                imageInlinerConfig.show();
+                console.log('✅ 配置界面已打开，页面上会临时出现配置界面');
+            } else {
+                alert('请先加载插件内容脚本');
+            }
+        }
+
+        // 测试功能
+        function testFunction() {
+            if (typeof testImageInliner !== 'undefined') {
+                testImageInliner();
+                console.log('✅ 测试功能已运行，页面上会临时出现测试内容');
+            } else {
+                alert('请先加载插件内容脚本');
+                console.log('请确保插件已加载，然后在控制台运行 testImageInliner()');
+            }
+        }
+
+        // 测试全选复制
+        function testSelectAll() {
+            // 模拟全选操作
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(document.body);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            console.log('✅ 已执行全选操作，请按 Ctrl+C 复制内容');
+            alert('已执行全选操作\n请按 Ctrl+C 复制内容\n然后点击"分析剪贴板"查看结果');
+        }
+
+        // 分析剪贴板内容
+        async function analyzeClipboard() {
+            try {
+                const clipboardText = await navigator.clipboard.readText();
+                
+                // 尝试读取HTML内容
+                let clipboardHTML = '';
+                try {
+                    const clipboardItems = await navigator.clipboard.read();
+                    for (const item of clipboardItems) {
+                        if (item.types.includes('text/html')) {
+                            const htmlBlob = await item.getType('text/html');
+                            clipboardHTML = await htmlBlob.text();
+                        }
+                    }
+                } catch (e) {
+                    console.log('无法读取HTML格式的剪贴板内容');
+                }
+
+                // 检查是否包含不想要的内容
+                const hasConfigButton = clipboardHTML.includes('imageInlinerConfigBtn') || 
+                                       clipboardHTML.includes('data-image-inliner-config') ||
+                                       clipboardHTML.includes('图片内联插件设置');
+                
+                const hasTestContent = clipboardHTML.includes('data-image-inliner-test') ||
+                                      clipboardHTML.includes('测试标题1') ||
+                                      clipboardHTML.includes('测试标题2');
+                
+                const hasConfigUI = clipboardHTML.includes('headingConfigUI') ||
+                                   clipboardHTML.includes('内容处理设置');
+                
+                const hasPluginText = clipboardText.includes('testImageInliner') ||
+                                     clipboardText.includes('imageInlinerConfig') ||
+                                     clipboardText.includes('图片内联转换插件');
+
+                // 分析结果
+                const analysis = `剪贴板内容分析：
+
+【基本信息】
+文本长度: ${clipboardText.length} 字符
+HTML长度: ${clipboardHTML.length} 字符
+行数: ${clipboardText.split('\n').length} 行
+
+【插件元素检查】
+包含配置按钮: ${hasConfigButton ? '❌ 是' : '✅ 否'}
+包含测试内容: ${hasTestContent ? '❌ 是' : '✅ 否'}
+包含配置界面: ${hasConfigUI ? '❌ 是' : '✅ 否'}
+包含插件文字: ${hasPluginText ? '❌ 是' : '✅ 否'}
+
+【修复效果评估】
+${!hasConfigButton && !hasTestContent && !hasConfigUI && !hasPluginText ? 
+'✅ 修复成功！没有检测到插件添加的元素' : 
+'⚠️ 仍有插件元素被复制，需要进一步检查'}
+
+【内容预览】
+${clipboardText.substring(0, 800)}${clipboardText.length > 800 ? '\n...' : ''}
+
+${clipboardHTML ? `【HTML内容关键词检查】
+配置按钮ID: ${clipboardHTML.includes('imageInlinerConfigBtn') ? '❌ 存在' : '✅ 不存在'}
+测试内容标记: ${clipboardHTML.includes('data-image-inliner-test') ? '❌ 存在' : '✅ 不存在'}
+配置界面ID: ${clipboardHTML.includes('headingConfigUI') ? '❌ 存在' : '✅ 不存在'}` : ''}`;
+
+                document.getElementById('clipboardAnalysis').style.display = 'block';
+                document.getElementById('clipboardAnalysis').textContent = analysis;
+                
+                console.log('📋 剪贴板分析完成');
+                
+                // 在控制台显示详细信息
+                console.log('详细分析结果:', {
+                    hasConfigButton,
+                    hasTestContent,
+                    hasConfigUI,
+                    hasPluginText,
+                    textLength: clipboardText.length,
+                    htmlLength: clipboardHTML.length
+                });
+                
+            } catch (err) {
+                alert('无法访问剪贴板: ' + err.message);
+                console.error('剪贴板访问失败:', err);
+            }
+        }
+
+        // 清除分析结果
+        function clearAnalysis() {
+            document.getElementById('clipboardAnalysis').style.display = 'none';
+        }
+
+        // 页面加载完成后的初始化
+        window.addEventListener('load', function() {
+            console.log('🔍 全选复制测试页面已加载');
+            console.log('💡 测试说明：');
+            console.log('1. 先点击配置和测试按钮添加插件元素');
+            console.log('2. 使用 Ctrl+A 全选所有内容');
+            console.log('3. 使用 Ctrl+C 复制内容');
+            console.log('4. 分析剪贴板验证是否排除了插件元素');
+        });
+    </script>
+</body>
+</html>

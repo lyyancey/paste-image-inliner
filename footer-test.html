@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>页脚过滤测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .test-content {
+            border: 2px solid #007acc;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f8f9fa;
+        }
+        .footer-example {
+            border-top: 1px solid #ccc;
+            margin-top: 20px;
+            padding-top: 10px;
+            color: #666;
+            font-size: 12px;
+            text-align: center;
+        }
+        .instructions {
+            background: #e7f3ff;
+            padding: 15px;
+            border-left: 4px solid #007acc;
+            margin: 20px 0;
+        }
+        .config-info {
+            background: #fff3cd;
+            padding: 15px;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .test-step {
+            background: #d4edda;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+    <h1>📋 页脚过滤功能测试</h1>
+    
+    <div class="instructions">
+        <h3>🔧 测试说明</h3>
+        <p>这个页面用于测试页脚过滤功能，会自动识别并过滤页脚中的版权信息。</p>
+        <ul>
+            <li>按 <code>Ctrl+A</code> 全选内容后复制粘贴</li>
+            <li>检查是否正确过滤了页脚内容</li>
+            <li>使用快捷键 <code>Ctrl+Shift+H</code> 打开配置面板调整设置</li>
+        </ul>
+    </div>
+
+    <div class="config-info">
+        <h3>⚙️ 当前页脚过滤配置</h3>
+        <p><strong>默认过滤关键词：</strong></p>
+        <ul>
+            <li>版权所有</li>
+            <li>华为技术有限公司</li>
+            <li>Copyright</li>
+            <li>© 华为</li>
+            <li>备案号</li>
+            <li>ICP</li>
+        </ul>
+    </div>
+
+    <div class="test-content">
+        <h2>📰 正文内容区域</h2>
+        <p>这是一篇关于技术发展的文章内容。人工智能技术正在快速发展，深度学习、机器学习和自然语言处理等领域都取得了重大突破。</p>
+        
+        <h3>🔗 主要特点</h3>
+        <ul>
+            <li>自动化程度高</li>
+            <li>学习能力强</li>
+            <li>应用范围广</li>
+        </ul>
+        
+        <p>随着技术的不断进步，AI将在更多领域发挥重要作用，为人类社会带来更多便利。</p>
+        
+        <h3>📊 相关数据</h3>
+        <table border="1" style="border-collapse: collapse; width: 100%;">
+            <caption>AI技术发展统计</caption>
+            <tr>
+                <th>年份</th>
+                <th>投资金额</th>
+                <th>应用数量</th>
+            </tr>
+            <tr>
+                <td>2022</td>
+                <td>500亿</td>
+                <td>1000+</td>
+            </tr>
+            <tr>
+                <td>2023</td>
+                <td>800亿</td>
+                <td>1500+</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="test-step">
+        <h4>🎯 测试步骤</h4>
+        <ol>
+            <li>按 <code>Ctrl+A</code> 全选页面内容</li>
+            <li>按 <code>Ctrl+C</code> 复制内容</li>
+            <li>在钉钉或其他编辑器中按 <code>Ctrl+V</code> 粘贴</li>
+            <li>检查页脚版权信息是否被过滤</li>
+            <li>如需调整配置，按 <code>Ctrl+Shift+H</code> 打开设置面板</li>
+        </ol>
+    </div>
+
+    <!-- 页脚区域 - 应该被过滤 -->
+    <div class="footer-example">
+        <hr>
+        <p>版权所有 © 华为技术有限公司 2024年</p>
+        <p>All Rights Reserved. Copyright © Huawei Technologies Co., Ltd.</p>
+        <p>备案号：粤ICP备12345678号</p>
+        <p>技术支持：华为云服务</p>
+    </div>
+
+    <!-- 额外的页脚内容 -->
+    <footer style="margin-top: 30px; padding: 20px; background: #f1f1f1; text-align: center; font-size: 12px; color: #666;">
+        <div>
+            <p>© 华为技术有限公司</p>
+            <p>版权所有，未经授权禁止转载</p>
+            <p>联系我们 | 法律声明 | 隐私政策</p>
+            <p>ICP备案号：京ICP备05013774号-1</p>
+        </div>
+    </footer>
+
+    <script>
+        // 页面加载完成后显示配置状态
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🧪 页脚过滤测试页面已加载');
+            
+            // 检查扩展是否已加载
+            setTimeout(() => {
+                if (window.configManager) {
+                    console.log('✅ 扩展配置管理器已加载');
+                    console.log('🔧 当前页脚过滤配置:', window.footerFilterConfig);
+                } else {
+                    console.log('⚠️ 扩展配置管理器未加载，请确保扩展已安装并启用');
+                }
+            }, 1000);
+        });
+
+        // 添加键盘快捷键提示
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'a') {
+                console.log('🔄 检测到 Ctrl+A，准备测试页脚过滤功能...');
+            }
+        });
+    </script>
+</body>
+</html>
